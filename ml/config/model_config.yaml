@@ -1,0 +1,767 @@
+# ==============================================================================
+# Multi-Disease Prediction System - Configuration
+# ==============================================================================
+
+project:
+  name: "Multi-Disease Clinical Decision Support System"
+  version: "1.0.0"
+  random_state: 42
+  test_size: 0.20
+  cv_folds: 5
+
+paths:
+  data_raw_dir: "d:/AI based disease prediction using ml/multi_disease_prediction_system/data/raw"
+  data_processed_dir: "d:/AI based disease prediction using ml/multi_disease_prediction_system/data/processed"
+  models_dir: "d:/AI based disease prediction using ml/multi_disease_prediction_system/ml/models"
+  reports_dir: "d:/AI based disease prediction using ml/multi_disease_prediction_system/ml/reports"
+  figures_dir: "d:/AI based disease prediction using ml/multi_disease_prediction_system/ml/reports/figures"
+  pdf_dir: "d:/AI based disease prediction using ml/multi_disease_prediction_system/ml/reports/generated_pdfs"
+
+# ==============================================================================
+# Disease Dataset Schemas & Preprocessing Configurations
+# ==============================================================================
+diseases:
+  heart:
+    file_name: "heart.csv"
+    has_header: false
+    target: "target"
+    raw_target_column: "num"
+    target_mapping:
+      0: 0
+      1: 1
+      2: 1
+      3: 1
+      4: 1
+    missing_markers: ["?", "NA", "null", ""]
+    columns:
+      - "age"
+      - "sex"
+      - "cp"
+      - "trestbps"
+      - "chol"
+      - "fbs"
+      - "restecg"
+      - "thalach"
+      - "exang"
+      - "oldpeak"
+      - "slope"
+      - "ca"
+      - "thal"
+      - "num"
+    features:
+      - "age"
+      - "sex"
+      - "cp"
+      - "trestbps"
+      - "chol"
+      - "fbs"
+      - "restecg"
+      - "thalach"
+      - "exang"
+      - "oldpeak"
+      - "slope"
+      - "ca"
+      - "thal"
+    numeric_features:
+      - "age"
+      - "trestbps"
+      - "chol"
+      - "thalach"
+      - "oldpeak"
+      - "ca"
+    categorical_features:
+      - "sex"
+      - "cp"
+      - "fbs"
+      - "restecg"
+      - "exang"
+      - "slope"
+      - "thal"
+    zero_as_missing: []
+    imputation:
+      numeric: "median"
+      categorical: "mode"
+    scaling: "standard"
+    handle_imbalance: "smote"
+
+  diabetes:
+    file_name: "diabetes.csv"
+    has_header: true
+    target: "Outcome"
+    raw_target_column: "Outcome"
+    target_mapping:
+      0: 0
+      1: 1
+    missing_markers: ["?", "NA", "null", ""]
+    columns:
+      - "Pregnancies"
+      - "Glucose"
+      - "BloodPressure"
+      - "SkinThickness"
+      - "Insulin"
+      - "BMI"
+      - "DiabetesPedigreeFunction"
+      - "Age"
+      - "Outcome"
+    features:
+      - "Pregnancies"
+      - "Glucose"
+      - "BloodPressure"
+      - "SkinThickness"
+      - "Insulin"
+      - "BMI"
+      - "DiabetesPedigreeFunction"
+      - "Age"
+    numeric_features:
+      - "Pregnancies"
+      - "Glucose"
+      - "BloodPressure"
+      - "SkinThickness"
+      - "Insulin"
+      - "BMI"
+      - "DiabetesPedigreeFunction"
+      - "Age"
+    categorical_features: []
+    zero_as_missing:
+      - "Glucose"
+      - "BloodPressure"
+      - "SkinThickness"
+      - "Insulin"
+      - "BMI"
+    imputation:
+      numeric: "median"
+      categorical: "mode"
+    scaling: "standard"
+    handle_imbalance: "smote"
+
+  parkinsons:
+    file_name: "parkinsons.csv"
+    has_header: true
+    target: "status"
+    raw_target_column: "status"
+    target_mapping:
+      0: 0
+      1: 1
+    drop_columns:
+      - "name"
+    missing_markers: ["?", "NA", "null", ""]
+    columns:
+      - "name"
+      - "MDVP:Fo(Hz)"
+      - "MDVP:Fhi(Hz)"
+      - "MDVP:Flo(Hz)"
+      - "MDVP:Jitter(%)"
+      - "MDVP:Jitter(Abs)"
+      - "MDVP:RAP"
+      - "MDVP:PPQ"
+      - "Jitter:DDP"
+      - "MDVP:Shimmer"
+      - "MDVP:Shimmer(dB)"
+      - "Shimmer:APQ3"
+      - "Shimmer:APQ5"
+      - "MDVP:APQ"
+      - "Shimmer:DDA"
+      - "NHR"
+      - "HNR"
+      - "status"
+      - "RPDE"
+      - "DFA"
+      - "spread1"
+      - "spread2"
+      - "D2"
+      - "PPE"
+    features:
+      - "MDVP:Fo(Hz)"
+      - "MDVP:Fhi(Hz)"
+      - "MDVP:Flo(Hz)"
+      - "MDVP:Jitter(%)"
+      - "MDVP:Jitter(Abs)"
+      - "MDVP:RAP"
+      - "MDVP:PPQ"
+      - "Jitter:DDP"
+      - "MDVP:Shimmer"
+      - "MDVP:Shimmer(dB)"
+      - "Shimmer:APQ3"
+      - "Shimmer:APQ5"
+      - "MDVP:APQ"
+      - "Shimmer:DDA"
+      - "NHR"
+      - "HNR"
+      - "RPDE"
+      - "DFA"
+      - "spread1"
+      - "spread2"
+      - "D2"
+      - "PPE"
+    numeric_features:
+      - "MDVP:Fo(Hz)"
+      - "MDVP:Fhi(Hz)"
+      - "MDVP:Flo(Hz)"
+      - "MDVP:Jitter(%)"
+      - "MDVP:Jitter(Abs)"
+      - "MDVP:RAP"
+      - "MDVP:PPQ"
+      - "Jitter:DDP"
+      - "MDVP:Shimmer"
+      - "MDVP:Shimmer(dB)"
+      - "Shimmer:APQ3"
+      - "Shimmer:APQ5"
+      - "MDVP:APQ"
+      - "Shimmer:DDA"
+      - "NHR"
+      - "HNR"
+      - "RPDE"
+      - "DFA"
+      - "spread1"
+      - "spread2"
+      - "D2"
+      - "PPE"
+    categorical_features: []
+    zero_as_missing: []
+    imputation:
+      numeric: "median"
+      categorical: "mode"
+    scaling: "standard"
+    handle_imbalance: "smote"
+
+  liver:
+    file_name: "liver.csv"
+    has_header: false
+    target: "target"
+    raw_target_column: "Dataset"
+    target_mapping:
+      1: 1
+      2: 0
+    missing_markers: ["?", "NA", "null", ""]
+    columns:
+      - "Age"
+      - "Gender"
+      - "Total_Bilirubin"
+      - "Direct_Bilirubin"
+      - "Alkaline_Phosphotase"
+      - "Alamine_Aminotransferase"
+      - "Aspartate_Aminotransferase"
+      - "Total_Protiens"
+      - "Albumin"
+      - "Albumin_and_Globulin_Ratio"
+      - "Dataset"
+    features:
+      - "Age"
+      - "Gender"
+      - "Total_Bilirubin"
+      - "Direct_Bilirubin"
+      - "Alkaline_Phosphotase"
+      - "Alamine_Aminotransferase"
+      - "Aspartate_Aminotransferase"
+      - "Total_Protiens"
+      - "Albumin"
+      - "Albumin_and_Globulin_Ratio"
+    numeric_features:
+      - "Age"
+      - "Total_Bilirubin"
+      - "Direct_Bilirubin"
+      - "Alkaline_Phosphotase"
+      - "Alamine_Aminotransferase"
+      - "Aspartate_Aminotransferase"
+      - "Total_Protiens"
+      - "Albumin"
+      - "Albumin_and_Globulin_Ratio"
+    categorical_features:
+      - "Gender"
+    category_encodings:
+      Gender:
+        Male: 1
+        Female: 0
+    zero_as_missing: []
+    imputation:
+      numeric: "median"
+      categorical: "mode"
+    scaling: "standard"
+    handle_imbalance: "smote"
+
+# ==============================================================================
+# Model Hyperparameter Grids (for GridSearchCV / RandomizedSearchCV)
+# ==============================================================================
+model_grids:
+  RandomForest:
+    estimator: "RandomForestClassifier"
+    param_grid:
+      n_estimators: [50, 100]
+      max_depth: [null, 10]
+      min_samples_split: [2, 5]
+      min_samples_leaf: [1, 2]
+      class_weight: ["balanced", null]
+      random_state: [42]
+
+  XGBoost:
+    estimator: "XGBClassifier"
+    param_grid:
+      n_estimators: [50, 100]
+      max_depth: [3, 5]
+      learning_rate: [0.05, 0.1]
+      subsample: [0.8, 1.0]
+      eval_metric: ["logloss"]
+      random_state: [42]
+
+  LogisticRegression:
+    estimator: "LogisticRegression"
+    param_grid:
+      C: [0.1, 1.0, 10.0]
+      penalty: ["l2"]
+      solver: ["lbfgs", "liblinear"]
+      max_iter: [1000]
+      random_state: [42]
+
+  SVM:
+    estimator: "SVC"
+    param_grid:
+      C: [0.1, 1.0, 10.0]
+      kernel: ["linear", "rbf"]
+      probability: [true]
+      random_state: [42]
+
+  KNN:
+    estimator: "KNeighborsClassifier"
+    param_grid:
+      n_neighbors: [3, 5, 7, 9]
+      weights: ["uniform", "distance"]
+
+  DecisionTree:
+    estimator: "DecisionTreeClassifier"
+    param_grid:
+      max_depth: [3, 5, 10, null]
+      min_samples_split: [2, 5]
+      criterion: ["gini", "entropy"]
+      random_state: [42]
+
+  NaiveBayes:
+    estimator: "GaussianNB"
+    param_grid:
+      var_smoothing: [1.0e-9, 1.0e-8, 1.0e-7]
+
+# ==============================================================================
+# Uncertainty & Anomaly Thresholds
+# ==============================================================================
+uncertainty:
+  confidence_low_threshold: 0.40
+  confidence_high_threshold: 0.60
+  rf_variance_threshold: 0.08
+  isolation_forest:
+    contamination: 0.05
+    n_estimators: 100
+    random_state: 42
+  trust_badges:
+    high:
+      label: "RELIABLE"
+      description: "High predictive certainty, in-distribution input, consistent ensemble votes."
+      badge_color: "green"
+    medium:
+      label: "UNCERTAIN"
+      description: "Moderate prediction confidence near the decision boundary or elevated ensemble divergence."
+      badge_color: "amber"
+    ood:
+      label: "OUT_OF_DISTRIBUTION"
+      description: "Input pattern diverges significantly from clinical training distribution."
+      badge_color: "purple"
+    red_flag:
+      label: "CRITICAL_RED_FLAG"
+      description: "Urgent clinical abnormality detected by physician rules overriding statistical baseline."
+      badge_color: "red"
+
+# ==============================================================================
+# Clinical Red-Flag Diagnostic Rules (Rule-Based Overrides)
+# ==============================================================================
+red_flags:
+  heart:
+    - condition: "trestbps >= 180"
+      feature: "trestbps"
+      threshold: 180
+      severity: "CRITICAL"
+      message: "Hypertensive Crisis: Resting blood pressure >= 180 mmHg requires urgent medical evaluation."
+    - condition: "oldpeak >= 4.0"
+      feature: "oldpeak"
+      threshold: 4.0
+      severity: "HIGH"
+      message: "Severe ST depression (>= 4.0 mm) strongly indicates critical myocardial ischemia."
+    - condition: "thalach <= 55"
+      feature: "thalach"
+      threshold: 55
+      severity: "HIGH"
+      message: "Profound bradycardia during exercise test (peak HR <= 55 bpm)."
+    - condition: "ca >= 3"
+      feature: "ca"
+      threshold: 3
+      severity: "HIGH"
+      message: "Multi-vessel fluoroscopy calcification (3 major vessels affected)."
+
+  diabetes:
+    - condition: "Glucose >= 300"
+      feature: "Glucose"
+      threshold: 300
+      severity: "CRITICAL"
+      message: "Severe Hyperglycemia: Blood glucose >= 300 mg/dL poses acute ketoacidosis/HHS risk."
+    - condition: "Glucose <= 50"
+      feature: "Glucose"
+      threshold: 50
+      severity: "CRITICAL"
+      message: "Severe Hypoglycemia: Blood glucose <= 50 mg/dL is acutely life-threatening."
+    - condition: "BMI >= 45.0"
+      feature: "BMI"
+      threshold: 45.0
+      severity: "HIGH"
+      message: "Class III Morbid Obesity (BMI >= 45.0 kg/m^2)."
+    - condition: "BloodPressure >= 120"
+      feature: "BloodPressure"
+      threshold: 120
+      severity: "HIGH"
+      message: "Diastolic blood pressure >= 120 mmHg indicates severe hypertension."
+
+  parkinsons:
+    - condition: "MDVP:Jitter(%) >= 0.03"
+      feature: "MDVP:Jitter(%)"
+      threshold: 0.03
+      severity: "HIGH"
+      message: "Pronounced fundamental frequency perturbation (> 3%), characteristic of severe dysphonia."
+    - condition: "MDVP:Shimmer >= 0.15"
+      feature: "MDVP:Shimmer"
+      threshold: 0.15
+      severity: "HIGH"
+      message: "Extremely high amplitude shimmer (> 0.15), indicative of severe phonatory dysfunction."
+    - condition: "HNR <= 8.0"
+      feature: "HNR"
+      threshold: 8.0
+      severity: "HIGH"
+      message: "Severely degraded Harmonics-to-Noise Ratio (<= 8 dB), reflecting profound vocal roughness."
+
+  liver:
+    - condition: "Total_Bilirubin >= 5.0"
+      feature: "Total_Bilirubin"
+      threshold: 5.0
+      severity: "CRITICAL"
+      message: "Severe Hyperbilirubinemia (>= 5.0 mg/dL): Clinical jaundice and severe hepatic impairment."
+    - condition: "Alamine_Aminotransferase >= 350"
+      feature: "Alamine_Aminotransferase"
+      threshold: 350
+      severity: "CRITICAL"
+      message: "Markedly elevated ALT (>= 350 IU/L): Acute hepatocellular injury or active hepatitis."
+    - condition: "Aspartate_Aminotransferase >= 350"
+      feature: "Aspartate_Aminotransferase"
+      threshold: 350
+      severity: "CRITICAL"
+      message: "Markedly elevated AST (>= 350 IU/L): Acute liver necrosis or severe toxic hepatopathy."
+    - condition: "Albumin <= 2.0"
+      feature: "Albumin"
+      threshold: 2.0
+      severity: "HIGH"
+      message: "Severe Hypoalbuminemia (<= 2.0 g/dL): Advanced synthetic liver failure or cirrhosis."
+
+# ==============================================================================
+# Modifiable Features (What-If Counterfactual Simulator)
+# ==============================================================================
+modifiable_features:
+  heart:
+    modifiable:
+      - name: "trestbps"
+        display_name: "Resting Blood Pressure"
+        unit: "mm Hg"
+        min: 90
+        max: 200
+        step: 5
+        healthy_target: 115
+      - name: "chol"
+        display_name: "Serum Cholesterol"
+        unit: "mg/dl"
+        min: 120
+        max: 400
+        step: 10
+        healthy_target: 190
+      - name: "thalach"
+        display_name: "Maximum Heart Rate"
+        unit: "bpm"
+        min: 70
+        max: 210
+        step: 5
+        healthy_target: 165
+      - name: "oldpeak"
+        display_name: "ST Depression (Oldpeak)"
+        unit: "mm"
+        min: 0.0
+        max: 6.0
+        step: 0.2
+        healthy_target: 0.0
+    non_modifiable:
+      - "age"
+      - "sex"
+      - "cp"
+      - "fbs"
+      - "restecg"
+      - "exang"
+      - "slope"
+      - "ca"
+      - "thal"
+
+  diabetes:
+    modifiable:
+      - name: "Glucose"
+        display_name: "Fasting Blood Glucose"
+        unit: "mg/dL"
+        min: 60
+        max: 300
+        step: 5
+        healthy_target: 95
+      - name: "BloodPressure"
+        display_name: "Diastolic Blood Pressure"
+        unit: "mm Hg"
+        min: 50
+        max: 130
+        step: 2
+        healthy_target: 72
+      - name: "BMI"
+        display_name: "Body Mass Index (BMI)"
+        unit: "kg/m^2"
+        min: 15.0
+        max: 55.0
+        step: 0.5
+        healthy_target: 22.5
+      - name: "Insulin"
+        display_name: "2-Hour Serum Insulin"
+        unit: "mu U/ml"
+        min: 15
+        max: 400
+        step: 10
+        healthy_target: 75
+      - name: "SkinThickness"
+        display_name: "Triceps Skin Fold"
+        unit: "mm"
+        min: 5
+        max: 60
+        step: 2
+        healthy_target: 20
+    non_modifiable:
+      - "Pregnancies"
+      - "DiabetesPedigreeFunction"
+      - "Age"
+
+  parkinsons:
+    modifiable:
+      - name: "MDVP:Jitter(%)"
+        display_name: "Vocal Jitter (%)"
+        unit: "%"
+        min: 0.001
+        max: 0.04
+        step: 0.001
+        healthy_target: 0.003
+      - name: "MDVP:Shimmer"
+        display_name: "Vocal Shimmer"
+        unit: "ratio"
+        min: 0.005
+        max: 0.15
+        step: 0.005
+        healthy_target: 0.02
+      - name: "HNR"
+        display_name: "Harmonics-to-Noise Ratio"
+        unit: "dB"
+        min: 5.0
+        max: 35.0
+        step: 1.0
+        healthy_target: 25.0
+    non_modifiable:
+      - "MDVP:Fo(Hz)"
+      - "MDVP:Fhi(Hz)"
+      - "MDVP:Flo(Hz)"
+      - "MDVP:Jitter(Abs)"
+      - "MDVP:RAP"
+      - "MDVP:PPQ"
+      - "Jitter:DDP"
+      - "MDVP:Shimmer(dB)"
+      - "Shimmer:APQ3"
+      - "Shimmer:APQ5"
+      - "MDVP:APQ"
+      - "Shimmer:DDA"
+      - "NHR"
+      - "RPDE"
+      - "DFA"
+      - "spread1"
+      - "spread2"
+      - "D2"
+      - "PPE"
+
+  liver:
+    modifiable:
+      - name: "Total_Bilirubin"
+        display_name: "Total Bilirubin"
+        unit: "mg/dL"
+        min: 0.2
+        max: 15.0
+        step: 0.2
+        healthy_target: 0.8
+      - name: "Alamine_Aminotransferase"
+        display_name: "Alanine Aminotransferase (ALT)"
+        unit: "IU/L"
+        min: 10
+        max: 400
+        step: 5
+        healthy_target: 28
+      - name: "Aspartate_Aminotransferase"
+        display_name: "Aspartate Aminotransferase (AST)"
+        unit: "IU/L"
+        min: 10
+        max: 400
+        step: 5
+        healthy_target: 25
+      - name: "Total_Protiens"
+        display_name: "Total Proteins"
+        unit: "g/dL"
+        min: 3.0
+        max: 10.0
+        step: 0.2
+        healthy_target: 7.2
+      - name: "Albumin"
+        display_name: "Albumin"
+        unit: "g/dL"
+        min: 1.5
+        max: 6.0
+        step: 0.1
+        healthy_target: 4.2
+      - name: "Albumin_and_Globulin_Ratio"
+        display_name: "A/G Ratio"
+        unit: "ratio"
+        min: 0.3
+        max: 2.5
+        step: 0.1
+        healthy_target: 1.2
+    non_modifiable:
+      - "Age"
+      - "Gender"
+      - "Direct_Bilirubin"
+      - "Alkaline_Phosphotase"
+
+# ==============================================================================
+# Medical Reference Ranges & Data Quality Validation
+# ==============================================================================
+reference_ranges:
+  heart:
+    age: {min: 18, max: 100, unit: "years"}
+    sex: {allowed: [0, 1], unit: "binary"}
+    cp: {allowed: [1, 2, 3, 4], unit: "category"}
+    trestbps: {min: 60, max: 240, normal_min: 90, normal_max: 120, unit: "mm Hg"}
+    chol: {min: 100, max: 600, normal_min: 125, normal_max: 200, unit: "mg/dl"}
+    fbs: {allowed: [0, 1], unit: "binary"}
+    restecg: {allowed: [0, 1, 2], unit: "category"}
+    thalach: {min: 50, max: 230, normal_min: 100, normal_max: 190, unit: "bpm"}
+    exang: {allowed: [0, 1], unit: "binary"}
+    oldpeak: {min: 0.0, max: 8.0, normal_min: 0.0, normal_max: 1.5, unit: "mm"}
+    slope: {allowed: [1, 2, 3], unit: "category"}
+    ca: {min: 0, max: 3, unit: "count"}
+    thal: {allowed: [3, 6, 7], unit: "category"}
+
+  diabetes:
+    Pregnancies: {min: 0, max: 20, unit: "count"}
+    Glucose: {min: 40, max: 350, normal_min: 70, normal_max: 125, unit: "mg/dL"}
+    BloodPressure: {min: 40, max: 140, normal_min: 60, normal_max: 85, unit: "mm Hg"}
+    SkinThickness: {min: 5, max: 99, normal_min: 10, normal_max: 35, unit: "mm"}
+    Insulin: {min: 10, max: 900, normal_min: 16, normal_max: 166, unit: "mu U/ml"}
+    BMI: {min: 12.0, max: 70.0, normal_min: 18.5, normal_max: 24.9, unit: "kg/m^2"}
+    DiabetesPedigreeFunction: {min: 0.05, max: 2.50, unit: "score"}
+    Age: {min: 18, max: 100, unit: "years"}
+
+  parkinsons:
+    "MDVP:Fo(Hz)": {min: 70.0, max: 300.0, unit: "Hz"}
+    "MDVP:Fhi(Hz)": {min: 90.0, max: 600.0, unit: "Hz"}
+    "MDVP:Flo(Hz)": {min: 50.0, max: 260.0, unit: "Hz"}
+    "MDVP:Jitter(%)": {min: 0.0005, max: 0.060, unit: "%"}
+    "MDVP:Jitter(Abs)": {min: 0.000005, max: 0.000300, unit: "s"}
+    "MDVP:RAP": {min: 0.0005, max: 0.035, unit: "ratio"}
+    "MDVP:PPQ": {min: 0.0005, max: 0.035, unit: "ratio"}
+    "Jitter:DDP": {min: 0.001, max: 0.100, unit: "ratio"}
+    "MDVP:Shimmer": {min: 0.005, max: 0.200, unit: "ratio"}
+    "MDVP:Shimmer(dB)": {min: 0.05, max: 1.50, unit: "dB"}
+    "Shimmer:APQ3": {min: 0.002, max: 0.100, unit: "ratio"}
+    "Shimmer:APQ5": {min: 0.003, max: 0.100, unit: "ratio"}
+    "MDVP:APQ": {min: 0.004, max: 0.150, unit: "ratio"}
+    "Shimmer:DDA": {min: 0.006, max: 0.300, unit: "ratio"}
+    NHR: {min: 0.0005, max: 0.400, unit: "ratio"}
+    HNR: {min: 5.0, max: 40.0, unit: "dB"}
+    RPDE: {min: 0.15, max: 0.80, unit: "score"}
+    DFA: {min: 0.40, max: 0.95, unit: "score"}
+    spread1: {min: -9.0, max: -1.0, unit: "score"}
+    spread2: {min: 0.01, max: 0.60, unit: "score"}
+    D2: {min: 1.0, max: 4.5, unit: "score"}
+    PPE: {min: 0.02, max: 0.65, unit: "score"}
+
+  liver:
+    Age: {min: 4, max: 100, unit: "years"}
+    Gender: {allowed: [0, 1, "Male", "Female"], unit: "categorical"}
+    Total_Bilirubin: {min: 0.2, max: 80.0, normal_min: 0.3, normal_max: 1.2, unit: "mg/dL"}
+    Direct_Bilirubin: {min: 0.1, max: 25.0, normal_min: 0.0, normal_max: 0.3, unit: "mg/dL"}
+    Alkaline_Phosphotase: {min: 50, max: 2500, normal_min: 44, normal_max: 147, unit: "IU/L"}
+    Alamine_Aminotransferase: {min: 5, max: 2500, normal_min: 7, normal_max: 56, unit: "IU/L"}
+    Aspartate_Aminotransferase: {min: 5, max: 5000, normal_min: 10, normal_max: 40, unit: "IU/L"}
+    Total_Protiens: {min: 2.0, max: 11.0, normal_min: 6.0, normal_max: 8.3, unit: "g/dL"}
+    Albumin: {min: 0.8, max: 6.5, normal_min: 3.5, normal_max: 5.0, unit: "g/dL"}
+    Albumin_and_Globulin_Ratio: {min: 0.1, max: 3.0, normal_min: 1.0, normal_max: 2.2, unit: "ratio"}
+
+# ==============================================================================
+# Cross-Risk Multi-Disease Patterns
+# ==============================================================================
+cross_risk_patterns:
+  cardio_metabolic:
+    name: "Cardio-Metabolic Syndrome"
+    diseases: ["heart", "diabetes"]
+    probability_threshold: 0.50
+    priority: "HIGH"
+    specialist: "Cardiologist & Endocrinologist"
+    description: "Concurrent high cardiovascular risk and insulin resistance. Greatly increases vascular complications and coronary event rate."
+    recommendations:
+      - "Schedule comprehensive lipid panel and HbA1c testing."
+      - "Cardiovascular stress imaging combined with glycemic review."
+      - "Aggressive lifestyle intervention targeting blood pressure (<130/80) and glycemic control."
+
+  liver_metabolic:
+    name: "Hepato-Metabolic Syndrome (MASLD / NAFLD)"
+    diseases: ["liver", "diabetes"]
+    probability_threshold: 0.50
+    priority: "HIGH"
+    specialist: "Hepatologist & Endocrinologist"
+    description: "Concurrent liver impairment and metabolic dysfunction, highly suggestive of Metabolic Dysfunction-Associated Steatohepatitis (MASH)."
+    recommendations:
+      - "Perform abdominal ultrasound or transient elastography (FibroScan) to assess hepatic steatosis/fibrosis."
+      - "Evaluate LFT trends and glycemic variability."
+      - "Target modest weight reduction (7-10%) and avoid hepatotoxic medications/alcohol."
+
+  cardio_hepatic:
+    name: "Cardio-Hepatic Axis Impairment"
+    diseases: ["heart", "liver"]
+    probability_threshold: 0.50
+    priority: "HIGH"
+    specialist: "Cardiologist & Hepatologist"
+    description: "Concurrent heart and liver disease risk, potentially indicating congestive hepatopathy or systemic vascular congestion."
+    recommendations:
+      - "Assess right heart ventricular function and central venous pressures via echocardiogram."
+      - "Monitor volume status, renal function, and hepatic synthetic markers."
+      - "Consult multidisciplinary care for optimized diuretic and neurohormonal therapy."
+
+  neurological:
+    name: "Isolated Neuro-Motor Syndrome"
+    diseases: ["parkinsons"]
+    probability_threshold: 0.50
+    priority: "MEDIUM"
+    specialist: "Neurologist (Movement Disorder Specialist)"
+    description: "Elevated Parkinsonian voice/acoustic biomarker indicators requiring formal clinical motor and cognitive examination."
+    recommendations:
+      - "Refer for MDS-UPDRS (Movement Disorder Society-Unified Parkinson's Disease Rating Scale) staging."
+      - "Assess fine motor dexterity, gait balance, and resting tremor."
+      - "Consider DaTscan imaging if diagnostic uncertainty exists."
+
+  multi_system:
+    name: "Multi-System Failure / High Cross-Organ Risk"
+    diseases: ["heart", "diabetes", "liver"]
+    probability_threshold: 0.50
+    min_matching_diseases: 3
+    priority: "EMERGENCY"
+    specialist: "Internal Medicine / Multi-Disciplinary Clinical Panel"
+    description: "Simultaneous high risks across cardiovascular, metabolic, and hepatic systems requiring urgent holistic medical attention."
+    recommendations:
+      - "Immediate comprehensive admission/evaluation by Internal Medicine."
+      - "Full laboratory workup: CMP, CBC, Cardiac enzymes, Troponin, BNP, HbA1c, Coagulation panel."
+      - "Coordinate care across cardiology, endocrinology, and hepatology."

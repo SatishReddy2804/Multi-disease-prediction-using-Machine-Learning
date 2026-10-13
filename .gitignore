@@ -1,0 +1,69 @@
+# Copy this to .env and fill in values
+cp .env.example .env
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+venv/
+env/
+.venv/
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+*.log
+media/reports/*.pdf
+
+# ML artifacts
+ml/models/*.joblib
+ml/models/*.pkl
+ml/reports/generated_pdfs/
+ml/reports/confusion_matrices/*.png
+ml/reports/roc_curves/*.png
+ml/reports/feature_importance/*.png
+ml/reports/shap_values/*.png
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker
+.dockerignore
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Misc
+*.bak
+*.tmp

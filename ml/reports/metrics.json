@@ -1,0 +1,242 @@
+{
+  "heart": {
+    "disease": "heart",
+    "best_model": "XGBoost",
+    "models": {
+      "RandomForest": {
+        "accuracy": 0.9016,
+        "precision": 0.8667,
+        "recall": 0.9286,
+        "f1": 0.8966,
+        "roc_auc": 0.9416
+      },
+      "XGBoost": {
+        "accuracy": 0.9016,
+        "precision": 0.8438,
+        "recall": 0.9643,
+        "f1": 0.9,
+        "roc_auc": 0.9416
+      },
+      "LogisticRegression": {
+        "accuracy": 0.8689,
+        "precision": 0.8125,
+        "recall": 0.9286,
+        "f1": 0.8667,
+        "roc_auc": 0.9437
+      },
+      "SVM": {
+        "accuracy": 0.8361,
+        "precision": 0.8,
+        "recall": 0.8571,
+        "f1": 0.8276,
+        "roc_auc": 0.9426
+      },
+      "KNN": {
+        "accuracy": 0.8852,
+        "precision": 0.8,
+        "recall": 1.0,
+        "f1": 0.8889,
+        "roc_auc": 0.9177
+      },
+      "DecisionTree": {
+        "accuracy": 0.8033,
+        "precision": 0.7667,
+        "recall": 0.8214,
+        "f1": 0.7931,
+        "roc_auc": 0.8339
+      },
+      "NaiveBayes": {
+        "accuracy": 0.8689,
+        "precision": 0.7941,
+        "recall": 0.9643,
+        "f1": 0.871,
+        "roc_auc": 0.9491
+      }
+    },
+    "figures": {
+      "roc_curve": "d:\\AI based disease prediction using ml\\multi_disease_prediction_system\\ml\\reports\\figures\\heart_roc_curves.png",
+      "confusion_matrix": "d:\\AI based disease prediction using ml\\multi_disease_prediction_system\\ml\\reports\\figures\\heart_confusion_matrix.png",
+      "feature_importance": "d:\\AI based disease prediction using ml\\multi_disease_prediction_system\\ml\\reports\\figures\\heart_feature_importance.png"
+    }
+  },
+  "diabetes": {
+    "disease": "diabetes",
+    "best_model": "RandomForest",
+    "models": {
+      "RandomForest": {
+        "accuracy": 0.7532,
+        "precision": 0.629,
+        "recall": 0.7222,
+        "f1": 0.6724,
+        "roc_auc": 0.8142
+      },
+      "XGBoost": {
+        "accuracy": 0.7403,
+        "precision": 0.6167,
+        "recall": 0.6852,
+        "f1": 0.6491,
+        "roc_auc": 0.8131
+      },
+      "LogisticRegression": {
+        "accuracy": 0.7143,
+        "precision": 0.5833,
+        "recall": 0.6481,
+        "f1": 0.614,
+        "roc_auc": 0.8081
+      },
+      "SVM": {
+        "accuracy": 0.7078,
+        "precision": 0.5738,
+        "recall": 0.6481,
+        "f1": 0.6087,
+        "roc_auc": 0.7993
+      },
+      "KNN": {
+        "accuracy": 0.7078,
+        "precision": 0.5616,
+        "recall": 0.7593,
+        "f1": 0.6457,
+        "roc_auc": 0.7831
+      },
+      "DecisionTree": {
+        "accuracy": 0.6818,
+        "precision": 0.5287,
+        "recall": 0.8519,
+        "f1": 0.6525,
+        "roc_auc": 0.7721
+      },
+      "NaiveBayes": {
+        "accuracy": 0.6948,
+        "precision": 0.5538,
+        "recall": 0.6667,
+        "f1": 0.605,
+        "roc_auc": 0.7741
+      }
+    },
+    "figures": {
+      "roc_curve": "d:\\AI based disease prediction using ml\\multi_disease_prediction_system\\ml\\reports\\figures\\diabetes_roc_curves.png",
+      "confusion_matrix": "d:\\AI based disease prediction using ml\\multi_disease_prediction_system\\ml\\reports\\figures\\diabetes_confusion_matrix.png",
+      "feature_importance": "d:\\AI based disease prediction using ml\\multi_disease_prediction_system\\ml\\reports\\figures\\diabetes_feature_importance.png"
+    }
+  },
+  "parkinsons": {
+    "disease": "parkinsons",
+    "best_model": "KNN",
+    "models": {
+      "RandomForest": {
+        "accuracy": 0.8974,
+        "precision": 0.963,
+        "recall": 0.8966,
+        "f1": 0.9286,
+        "roc_auc": 0.9638
+      },
+      "XGBoost": {
+        "accuracy": 0.9231,
+        "precision": 0.9643,
+        "recall": 0.931,
+        "f1": 0.9474,
+        "roc_auc": 0.9828
+      },
+      "LogisticRegression": {
+        "accuracy": 0.8462,
+        "precision": 0.96,
+        "recall": 0.8276,
+        "f1": 0.8889,
+        "roc_auc": 0.9241
+      },
+      "SVM": {
+        "accuracy": 0.8718,
+        "precision": 0.9286,
+        "recall": 0.8966,
+        "f1": 0.9123,
+        "roc_auc": 0.9621
+      },
+      "KNN": {
+        "accuracy": 0.9231,
+        "precision": 1.0,
+        "recall": 0.8966,
+        "f1": 0.9455,
+        "roc_auc": 0.9966
+      },
+      "DecisionTree": {
+        "accuracy": 0.7179,
+        "precision": 0.8462,
+        "recall": 0.7586,
+        "f1": 0.8,
+        "roc_auc": 0.7207
+      },
+      "NaiveBayes": {
+        "accuracy": 0.641,
+        "precision": 0.9412,
+        "recall": 0.5517,
+        "f1": 0.6957,
+        "roc_auc": 0.8586
+      }
+    },
+    "figures": {
+      "roc_curve": "d:\\AI based disease prediction using ml\\multi_disease_prediction_system\\ml\\reports\\figures\\parkinsons_roc_curves.png",
+      "confusion_matrix": "d:\\AI based disease prediction using ml\\multi_disease_prediction_system\\ml\\reports\\figures\\parkinsons_confusion_matrix.png",
+      "feature_importance": "d:\\AI based disease prediction using ml\\multi_disease_prediction_system\\ml\\reports\\figures\\parkinsons_feature_importance.png"
+    }
+  },
+  "liver": {
+    "disease": "liver",
+    "best_model": "LogisticRegression",
+    "models": {
+      "RandomForest": {
+        "accuracy": 0.693,
+        "precision": 0.7674,
+        "recall": 0.8148,
+        "f1": 0.7904,
+        "roc_auc": 0.7529
+      },
+      "XGBoost": {
+        "accuracy": 0.7193,
+        "precision": 0.7634,
+        "recall": 0.8765,
+        "f1": 0.8161,
+        "roc_auc": 0.7411
+      },
+      "LogisticRegression": {
+        "accuracy": 0.7281,
+        "precision": 0.931,
+        "recall": 0.6667,
+        "f1": 0.777,
+        "roc_auc": 0.8114
+      },
+      "SVM": {
+        "accuracy": 0.7368,
+        "precision": 0.8592,
+        "recall": 0.7531,
+        "f1": 0.8026,
+        "roc_auc": 0.7632
+      },
+      "KNN": {
+        "accuracy": 0.6316,
+        "precision": 0.8,
+        "recall": 0.642,
+        "f1": 0.7123,
+        "roc_auc": 0.6783
+      },
+      "DecisionTree": {
+        "accuracy": 0.7456,
+        "precision": 0.8421,
+        "recall": 0.7901,
+        "f1": 0.8153,
+        "roc_auc": 0.7688
+      },
+      "NaiveBayes": {
+        "accuracy": 0.6491,
+        "precision": 1.0,
+        "recall": 0.5062,
+        "f1": 0.6721,
+        "roc_auc": 0.8096
+      }
+    },
+    "figures": {
+      "roc_curve": "d:\\AI based disease prediction using ml\\multi_disease_prediction_system\\ml\\reports\\figures\\liver_roc_curves.png",
+      "confusion_matrix": "d:\\AI based disease prediction using ml\\multi_disease_prediction_system\\ml\\reports\\figures\\liver_confusion_matrix.png",
+      "feature_importance": "d:\\AI based disease prediction using ml\\multi_disease_prediction_system\\ml\\reports\\figures\\liver_feature_importance.png"
+    }
+  }
+}
