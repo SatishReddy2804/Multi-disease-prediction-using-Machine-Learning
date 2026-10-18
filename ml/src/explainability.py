@@ -236,6 +236,59 @@ class DiseaseExplainer:
         return str(output_path)
 
 
+def explain_prediction(
+    disease_name: str,
+    input_data: Dict[str, Any],
+    top_k: int = 5
+) -> Dict[str, Any]:
+    """
+    Generate patient-level explainability for a given disease and input dictionary.
+
+    Args:
+        disease_name: Disease identifier ('heart', 'diabetes', 'parkinsons', 'liver').
+        input_data: Dictionary of input clinical values.
+        top_k: Number of top driving features to extract.
+
+    Returns:
+        Dictionary containing risk drivers, protective factors, and attributions.
+    """
+    try:
+        from ml.src.inference import InferenceEngine
+        engine = InferenceEngine()
+        bundle = engine.registry.get_bundle(disease_name)
+        scaled_instance, raw_dict = engine.prepare_input_array(disease_name, input_data)
+
+        model = bundle.get("best_model") or bundle.get("model")
+        model_name = bundle.get("best_model_name") or bundle.get("model_name") or type(model).__name__
+        feature_names = bundle["feature_names"]
+
+        explainer = DiseaseExplainer(
+            model=model,
+            model_name=model_name,
+            feature_names=feature_names,
+            disease_name=disease_name
+        )
+        result = explainer.explain_instance(scaled_instance, raw_values_dict=raw_dict, top_k=top_k)
+
+        # Ensure compatibility with all frontend/service expectations
+        result["feature_contributions"] = result.get("all_attributions", [])
+        result["top_features"] = result.get("top_risk_drivers", []) + result.get("top_protective_factors", [])
+        result["plot_available"] = False
+        return result
+    except Exception as e:
+        logger.warning(f"Error generating model explainability for {disease_name}: {e}")
+        return {
+            "disease": disease_name,
+            "top_features": [],
+            "top_risk_drivers": [],
+            "top_protective_factors": [],
+            "feature_contributions": [],
+            "all_attributions": [],
+            "plot_available": False,
+            "error": str(e)
+        }
+
+
 if __name__ == "__main__":
     from ml.src.data_ingestion import load_raw_dataset
     from ml.src.data_cleaning import clean_dataset

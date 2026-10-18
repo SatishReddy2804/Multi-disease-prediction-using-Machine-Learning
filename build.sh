@@ -4,6 +4,9 @@ set -o errexit
 echo "=== Installing Python dependencies ==="
 pip install -r requirements.txt
 
+echo "=== Creating static and media directories ==="
+mkdir -p staticfiles media/reports static
+
 echo "=== Collecting static files ==="
 python manage.py collectstatic --no-input
 

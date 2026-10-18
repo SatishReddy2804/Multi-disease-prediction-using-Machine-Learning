@@ -18,4 +18,4 @@ class DataQualityCheckView(APIView):
         input_data = serializer.validated_data["input_data"]
 
         result = DataQualityService.check(disease_type, input_data)
-        return Response(result, status=status.HTTP_200_OK)
+        return Response({"success": True, "data": result, **result}, status=status.HTTP_200_OK)

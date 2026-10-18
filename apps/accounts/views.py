@@ -19,14 +19,22 @@ class RegisterView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             refresh = RefreshToken.for_user(user)
+            access = str(refresh.access_token)
+            ref_str = str(refresh)
             user_data = UserSerializer(user).data
             return Response(
                 {
                     "message": "User registered successfully.",
                     "user": user_data,
+                    "access": access,
+                    "refresh": ref_str,
+                    "access_token": access,
+                    "refresh_token": ref_str,
                     "tokens": {
-                        "refresh": str(refresh),
-                        "access": str(refresh.access_token),
+                        "refresh": ref_str,
+                        "access": access,
+                        "refresh_token": ref_str,
+                        "access_token": access,
                     },
                 },
                 status=status.HTTP_201_CREATED,
@@ -42,14 +50,22 @@ class LoginView(APIView):
         if serializer.is_valid():
             validated_data = serializer.validated_data
             user = validated_data["user"]
+            access = validated_data["access"]
+            ref_str = validated_data["refresh"]
             user_data = UserSerializer(user).data
             return Response(
                 {
                     "message": "Login successful.",
                     "user": user_data,
+                    "access": access,
+                    "refresh": ref_str,
+                    "access_token": access,
+                    "refresh_token": ref_str,
                     "tokens": {
-                        "refresh": validated_data["refresh"],
-                        "access": validated_data["access"],
+                        "refresh": ref_str,
+                        "access": access,
+                        "refresh_token": ref_str,
+                        "access_token": access,
                     },
                 },
                 status=status.HTTP_200_OK,

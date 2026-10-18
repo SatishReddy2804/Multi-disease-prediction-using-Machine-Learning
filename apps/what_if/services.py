@@ -28,6 +28,21 @@ class WhatIfService:
             from ml.src.what_if_simulator import run_what_if_simulation
             result = run_what_if_simulation(disease_type, original_input, modified_values)
             result["disclaimer"] = WHAT_IF_DISCLAIMER
+
+            base_prob = result.get("baseline", {}).get("probability", 0.0)
+            new_prob = result.get("counterfactual", {}).get("probability", 0.0)
+            delta = result.get("overall_impact", {}).get("probability_delta", round(new_prob - base_prob, 4))
+            delta_pct = result.get("overall_impact", {}).get("percentage_points_change", round(delta * 100, 1))
+
+            result["baseline_probability"] = base_prob
+            result["counterfactual_probability"] = new_prob
+            result["baselineProbability"] = base_prob
+            result["modifiedProbability"] = new_prob
+            result["delta"] = delta
+            result["deltaPercent"] = delta_pct
+            result["riskReduced"] = delta < 0
+            result["impactRanking"] = result.get("ranked_interventions", [])
+            result["summary"] = result.get("overall_impact", {}).get("recommendation", "")
             return result
         except Exception as e:
             logger.exception(f"What-if simulation error: {e}")

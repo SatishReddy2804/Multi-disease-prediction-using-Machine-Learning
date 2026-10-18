@@ -25,7 +25,13 @@ DEBUG = os.environ.get("DEBUG", "True").lower() in ("true", "1", "yes")
 ALLOWED_HOSTS = [
     h.strip()
     for h in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0,testserver").split(",")
+    if h.strip()
 ]
+
+# Auto-add Render hostname if running on Render
+render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if render_host and render_host not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(render_host)
 
 # Application definition
 INSTALLED_APPS = [
@@ -38,6 +44,7 @@ INSTALLED_APPS = [
     # Third-party
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "django_filters",
     # Project apps
@@ -113,7 +120,8 @@ USE_TZ = True
 # Static files
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"]
+_static_dir = BASE_DIR / "static"
+STATICFILES_DIRS = [_static_dir] if _static_dir.is_dir() else []
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Media files
@@ -167,8 +175,9 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     o.strip()
     for o in os.environ.get(
-        "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
+        "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000"
     ).split(",")
+    if o.strip()
 ]
 CORS_ALLOW_CREDENTIALS = True
 
@@ -176,9 +185,20 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     o.strip()
     for o in os.environ.get(
-        "CSRF_TRUSTED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
+        "CSRF_TRUSTED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000"
     ).split(",")
+    if o.strip()
 ]
+
+# Auto-add FRONTEND_URL if provided
+frontend_env = os.environ.get("FRONTEND_URL", "").strip()
+if frontend_env:
+    for url in frontend_env.split(","):
+        u = url.strip()
+        if u and u not in CORS_ALLOWED_ORIGINS:
+            CORS_ALLOWED_ORIGINS.append(u)
+        if u and u not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(u)
 
 # ML Configuration
 MODEL_DIRECTORY = os.environ.get("MODEL_DIRECTORY", str(BASE_DIR / "ml" / "models"))
@@ -238,4 +258,5 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = os.environ.get("SECURE_SSL_REDIRECT", "True").lower() == "true"
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = False  # Render handles SSL termination at the proxy level

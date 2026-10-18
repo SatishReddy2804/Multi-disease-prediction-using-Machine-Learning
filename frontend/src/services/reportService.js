@@ -1,14 +1,35 @@
 import { jsPDF } from 'jspdf';
+import api from './api';
 import { formatProbability, getRiskLabel, formatDate } from '../utils/helpers';
 import { DISEASE_CONFIGS } from '../utils/constants';
 
 const REPORTS_KEY = 'clinical_generated_reports';
 
 export const reportService = {
+  async generateReport(payload) {
+    const res = await api.post('/api/reports/generate/', payload);
+    return res;
+  },
+
   /**
-   * Generate clinical PDF document using jsPDF
+   * Generate or download clinical PDF document
    */
-  async downloadPdf(prediction) {
+  async downloadPdf(target) {
+    if (typeof target === 'string') {
+      const res = await api.get(`/api/reports/${target}/download-pdf/`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `clinical_report_${target}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      return `clinical_report_${target}.pdf`;
+    }
+
+    const prediction = target || {};
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',

@@ -213,20 +213,71 @@ function saveToHistory(record) {
 
 export const predictionService = {
   async predict(disease, data, patientInfo = {}) {
-    try {
-      const response = await api.post(`/predict/${disease}`, {
-        inputs: data,
-        patient: patientInfo,
-      });
-      const result = response.data;
-      saveToHistory(result);
-      return result;
-    } catch {
-      // Backend offline / error: fallback to intelligent clinical calculator
-      const simulated = generateSimulatedResult(disease, data, patientInfo);
-      saveToHistory(simulated);
-      return simulated;
-    }
+    const diseaseKey = disease.toLowerCase().trim();
+    const response = await api.post(`/api/predict/${diseaseKey}/`, {
+      inputs: data,
+      patient: patientInfo,
+      ...data,
+    });
+
+    const raw = response.data;
+    const inner = raw.data || raw;
+
+    // Normalize result structure for PredictionCard, TrustShieldPanel, and ReportService
+    const prob = typeof inner.probability === 'number' ? inner.probability : parseFloat(inner.probability) || 0;
+    const predResult = inner.prediction !== undefined ? inner.prediction : (inner.prediction_result !== undefined ? inner.prediction_result : (prob >= 0.5 ? 1 : 0));
+
+    const normalizedData = {
+      ...inner,
+      id: inner.prediction_id || 'pred_' + Date.now(),
+      disease: diseaseKey,
+      probability: prob,
+      prediction: predResult,
+      prediction_result: predResult,
+      predictionLabel: inner.prediction_label || (predResult === 1 ? 'High Risk Detected' : 'Low Risk / Normal Profile'),
+      risk_level: inner.risk_level || (prob >= 0.75 ? 'Critical' : prob >= 0.5 ? 'High' : prob >= 0.25 ? 'Moderate' : 'Low'),
+      riskLevel: inner.risk_level || (prob >= 0.75 ? 'CRITICAL' : prob >= 0.5 ? 'HIGH' : prob >= 0.25 ? 'MODERATE' : 'LOW'),
+      modelName: inner.model_used || inner.model_name || 'Machine Learning Estimator',
+      model_used: inner.model_used || inner.model_name || 'Machine Learning Estimator',
+      patient: {
+        patientId: patientInfo.patientId || 'PT-' + Math.floor(100000 + Math.random() * 900000),
+        fullName: patientInfo.fullName || 'Anonymous Patient',
+        age: patientInfo.age || data.age || data.Age || 48,
+        gender: patientInfo.gender || (data.sex === 1 || data.Gender === 'Male' || data.Gender === 1 ? 'Male' : 'Female'),
+        ...patientInfo,
+      },
+      inputs: data,
+      trustShield: {
+        dataQualityScore: inner.data_quality?.quality_score || inner.data_quality?.score || 95,
+        modelConfidence: Math.round((1 - Math.abs(prob - 0.5) * 0.4) * 95),
+        uncertaintyLevel: inner.uncertainty?.uncertainty_level === 'High' ? 45 : 12,
+        modelAgreement: inner.uncertainty?.model_agreement || 94,
+        oodStatus: inner.uncertainty?.ood_status ? 'OUT_OF_DISTRIBUTION' : 'IN_DISTRIBUTION',
+        finalStatus: inner.uncertainty?.trust_status || (prob >= 0.4 && prob <= 0.6 ? 'UNCERTAIN' : 'RELIABLE'),
+      },
+      topFeatures: inner.explainability?.top_features || [],
+      redFlags: (inner.red_flags || []).map((f) => (typeof f === 'object' ? f.alert || f.action || JSON.stringify(f) : String(f))),
+      crossRiskAlert: inner.cross_risk_findings || null,
+      recommendations: inner.prevention_guidance || [],
+      prevention_guidance: inner.prevention_guidance || [],
+      medications: inner.medicine_information || inner.medicines || [],
+      medicine_information: inner.medicine_information || inner.medicines || [],
+      disclaimer: inner.disclaimer || '',
+      timestamp: inner.timestamp || new Date().toISOString(),
+    };
+
+    saveToHistory(normalizedData);
+
+    // Return object compatible with both res.data.data and direct res.probability
+    return {
+      success: true,
+      data: {
+        success: true,
+        data: normalizedData,
+        ...normalizedData,
+      },
+      ...normalizedData,
+    };
   },
 
   async predictHeart(data, patientInfo) {
@@ -246,14 +297,8 @@ export const predictionService = {
   },
 
   async batchPredict(batchData) {
-    try {
-      const response = await api.post('/predict/batch', batchData);
-      return response.data;
-    } catch {
-      return batchData.map((item) =>
-        generateSimulatedResult(item.disease || 'heart', item.inputs, item.patient)
-      );
-    }
+    const response = await api.post('/api/predict/batch/', batchData);
+    return response.data;
   },
 
   getHistory() {

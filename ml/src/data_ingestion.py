@@ -23,6 +23,11 @@ logger = logging.getLogger(__name__)
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "model_config.yaml"
 
 
+def get_project_root() -> Path:
+    """Return the absolute path to the project root directory."""
+    return Path(__file__).resolve().parent.parent.parent
+
+
 def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
     """
     Load the master YAML configuration file.
@@ -44,13 +49,19 @@ def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
     with open(target_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
+    # Normalize relative paths to absolute using project root
+    root = get_project_root()
+    if "paths" in config and isinstance(config["paths"], dict):
+        for key, val in config["paths"].items():
+            if val:
+                p = Path(val)
+                if not p.is_absolute():
+                    config["paths"][key] = str((root / p).resolve())
+                else:
+                    config["paths"][key] = str(p)
+
     logger.debug("Successfully loaded configuration from %s", target_path)
     return config
-
-
-def get_project_root() -> Path:
-    """Return the absolute path to the project root directory."""
-    return Path(__file__).resolve().parent.parent.parent
 
 
 def validate_schema(df: pd.DataFrame, expected_columns: list, disease_name: str) -> bool:

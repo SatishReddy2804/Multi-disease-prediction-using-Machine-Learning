@@ -4,7 +4,7 @@ import { predictionService } from './predictionService';
 export const whatIfService = {
   async simulate(disease, originalInputs, modifiedInputs) {
     try {
-      const response = await api.post('/what-if/simulate', {
+      const response = await api.post('/api/what-if/simulate/', {
         disease,
         original: originalInputs,
         modified: modifiedInputs,

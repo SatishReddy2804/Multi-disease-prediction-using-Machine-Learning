@@ -27,7 +27,7 @@ from sklearn.metrics import (
     roc_auc_score, roc_curve, confusion_matrix
 )
 
-from ml.src.data_ingestion import load_config
+from ml.src.data_ingestion import load_config, get_project_root
 
 logger = logging.getLogger(__name__)
 
@@ -185,8 +185,9 @@ def evaluate_disease_models(
 
     disease_name = disease_name.lower().strip()
     paths = config.get("paths", {})
-    models_dir = Path(paths.get("models_dir", "d:/AI based disease prediction using ml/multi_disease_prediction_system/ml/models"))
-    figures_dir = Path(paths.get("figures_dir", "d:/AI based disease prediction using ml/multi_disease_prediction_system/ml/reports/figures"))
+    root = get_project_root()
+    models_dir = Path(paths.get("models_dir", root / "ml" / "models"))
+    figures_dir = Path(paths.get("figures_dir", root / "ml" / "reports" / "figures"))
 
     if bundle is None:
         bundle_path = models_dir / f"{disease_name}_model_bundle.joblib"
@@ -245,7 +246,7 @@ def evaluate_all_diseases(config: Optional[Dict[str, Any]] = None) -> Dict[str, 
     if config is None:
         config = load_config()
 
-    reports_dir = Path(config.get("paths", {}).get("reports_dir", "d:/AI based disease prediction using ml/multi_disease_prediction_system/ml/reports"))
+    reports_dir = Path(config.get("paths", {}).get("reports_dir", get_project_root() / "ml" / "reports"))
     reports_dir.mkdir(parents=True, exist_ok=True)
     metrics_file = reports_dir / "metrics.json"
 

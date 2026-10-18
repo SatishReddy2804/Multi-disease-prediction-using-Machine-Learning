@@ -37,7 +37,7 @@ class CrossRiskAnalyzeView(APIView):
 
         try:
             result = CrossRiskService.analyze(predictions)
-            return Response({"success": True, "data": result}, status=status.HTTP_200_OK)
+            return Response({"success": True, "data": result, **result}, status=status.HTTP_200_OK)
 
         except Exception as e:
             logger.exception("Error during cross-risk syndromic analysis")

@@ -15,7 +15,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from ml.src.data_ingestion import load_config
+from ml.src.data_ingestion import load_config, get_project_root
 from ml.src.data_cleaning import DataCleaner
 
 logger = logging.getLogger(__name__)
@@ -64,7 +64,7 @@ class ModelRegistry:
         self.models_dir = Path(
             self.config.get("paths", {}).get(
                 "models_dir",
-                "d:/AI based disease prediction using ml/multi_disease_prediction_system/ml/models"
+                get_project_root() / "ml" / "models"
             )
         )
         self._bundles: Dict[str, Dict[str, Any]] = {}
@@ -149,12 +149,21 @@ class InferenceEngine:
         else:
             raise TypeError("input_data must be a dict or pandas DataFrame")
 
-        # Ensure all required features are present (fill with cleaner defaults if missing)
+        # Ensure all required features are present (match exact, normalized, or fallback to cleaner defaults)
+        norm_col_map = {
+            c.lower().replace("_", "").replace(":", "").replace("(", "").replace(")", "").replace("%", ""): c
+            for c in df.columns
+        }
         for feat in feature_names:
             if feat not in df.columns:
-                default_val = cleaner.numeric_imputations.get(feat, cleaner.categorical_imputations.get(feat, 0.0))
-                df[feat] = default_val
-                raw_dict[feat] = default_val
+                feat_norm = feat.lower().replace("_", "").replace(":", "").replace("(", "").replace(")", "").replace("%", "")
+                if feat_norm in norm_col_map:
+                    df[feat] = df[norm_col_map[feat_norm]]
+                    raw_dict[feat] = df[feat].iloc[0]
+                else:
+                    default_val = cleaner.numeric_imputations.get(feat, cleaner.categorical_imputations.get(feat, 0.0))
+                    df[feat] = default_val
+                    raw_dict[feat] = default_val
 
         # Transform with cleaner (do not drop duplicates for single inference)
         cleaned_df = cleaner.transform(df, drop_duplicates=False)

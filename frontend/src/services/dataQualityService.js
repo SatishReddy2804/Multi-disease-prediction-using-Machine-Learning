@@ -5,7 +5,7 @@ import { calculateQualityMetrics, evaluateFeatureAnomaly } from '../utils/helper
 export const dataQualityService = {
   async checkQuality(disease, inputs) {
     try {
-      const response = await api.post(`/data-quality/check`, { disease, inputs });
+      const response = await api.post(`/api/data-quality/check/`, { disease, inputs });
       return response.data;
     } catch {
       // Local calculation fallback

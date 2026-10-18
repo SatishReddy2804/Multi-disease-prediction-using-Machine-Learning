@@ -97,15 +97,8 @@ class ParkinsonsPredictionService:
                 "model_used": raw_pred.get("model_name", "KNN")
             }
         except Exception as e:
-            logger.error(f"Inference error: {e}")
-            pred_result = {
-                "disease": "parkinsons",
-                "predicted_class": 0,
-                "predicted_probability": 0.25,
-                "risk_level": "Low",
-                "model_used": "Fallback Estimator",
-                "error": str(e)
-            }
+            logger.error(f"Inference error in Parkinson's service: {e}")
+            raise
 
         # 3. Run Uncertainty Shield
         try:

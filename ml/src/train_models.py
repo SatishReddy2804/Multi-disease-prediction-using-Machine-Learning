@@ -27,7 +27,7 @@ from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 )
 
-from ml.src.data_ingestion import load_raw_dataset, load_config
+from ml.src.data_ingestion import load_raw_dataset, load_config, get_project_root
 from ml.src.data_cleaning import clean_dataset
 from ml.src.feature_engineering import FeaturePipeline
 
@@ -251,7 +251,7 @@ def train_disease_pipeline(
 
     # 6. Save Artifacts
     if save_artifacts:
-        models_dir = Path(config.get("paths", {}).get("models_dir", "d:/AI based disease prediction using ml/multi_disease_prediction_system/ml/models"))
+        models_dir = Path(config.get("paths", {}).get("models_dir", get_project_root() / "ml" / "models"))
         models_dir.mkdir(parents=True, exist_ok=True)
 
         bundle_path = models_dir / f"{disease_name}_model_bundle.joblib"

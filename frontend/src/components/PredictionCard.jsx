@@ -24,6 +24,7 @@ import toast from 'react-hot-toast';
 
 export default function PredictionCard({
   prediction,
+  result,
   onOpenWhatIf,
   className = '',
 }) {
@@ -31,11 +32,13 @@ export default function PredictionCard({
   const [showMedicines, setShowMedicines] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
-  if (!prediction) return null;
+  const pred = prediction || result;
+  if (!pred) return null;
+  prediction = pred;
 
   const diseaseConfig = DISEASE_CONFIGS[prediction.disease] || {
-    name: prediction.disease,
-    shortName: prediction.disease,
+    name: prediction.disease || 'Clinical Assessment',
+    shortName: prediction.disease || 'Assessment',
     icon: 'Activity',
   };
 

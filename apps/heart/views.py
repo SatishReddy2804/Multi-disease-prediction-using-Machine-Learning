@@ -30,10 +30,11 @@ class HeartPredictView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        # 1. Validate input via serializer
-        serializer = HeartPredictionSerializer(data=request.data)
+        # 1. Validate input via serializer (accepts both flat payload or {"inputs": {...}})
+        raw_input = request.data.get("inputs", request.data) if isinstance(request.data, dict) else request.data
+        serializer = HeartPredictionSerializer(data=raw_input)
         if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"success": False, "error": "Validation failed", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         validated_data = serializer.validated_data
 
@@ -112,21 +113,29 @@ class HeartPredictView(APIView):
             )
 
             # 9. Return comprehensive response
+            resp_payload = {
+                "prediction_id": history_record.id,
+                "disease_type": "heart",
+                "disease": "heart",
+                "prediction_result": res_code,
+                "prediction": res_code,
+                "prediction_label": "High Risk of Coronary Heart Disease" if res_code == 1 else "Low Risk / Normal Profile",
+                "probability": prob,
+                "risk_level": risk_level,
+                "uncertainty": uncertainty_result,
+                "data_quality": quality_result,
+                "explainability": explainability,
+                "triage": triage_result,
+                "prevention_guidance": prediction_result.get("prevention_guidance", []),
+                "medicine_information": prediction_result.get("medicine_information", []),
+                "disclaimer": prediction_result.get("disclaimer", ""),
+                "timestamp": history_record.created_at,
+            }
             return Response(
                 {
-                    "prediction_id": history_record.id,
-                    "disease_type": "heart",
-                    "prediction_result": res_code,
-                    "probability": prob,
-                    "risk_level": risk_level,
-                    "uncertainty": uncertainty_result,
-                    "data_quality": quality_result,
-                    "explainability": explainability,
-                    "triage": triage_result,
-                    "prevention_guidance": prediction_result.get("prevention_guidance", []),
-                    "medicine_information": prediction_result.get("medicine_information", []),
-                    "disclaimer": prediction_result.get("disclaimer", ""),
-                    "timestamp": history_record.created_at,
+                    "success": True,
+                    "data": resp_payload,
+                    **resp_payload
                 },
                 status=status.HTTP_200_OK,
             )

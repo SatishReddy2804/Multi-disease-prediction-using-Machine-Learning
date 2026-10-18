@@ -41,7 +41,7 @@ class WhatIfSimulateView(APIView):
                 original_input=validated_data["original_input"],
                 modified_values=validated_data["modified_values"]
             )
-            return Response({"success": True, "data": result}, status=status.HTTP_200_OK)
+            return Response({"success": True, "data": result, **result}, status=status.HTTP_200_OK)
 
         except Exception as e:
             logger.exception("Error during what-if risk simulation")

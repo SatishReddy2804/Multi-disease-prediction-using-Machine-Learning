@@ -10,53 +10,30 @@ const DEFAULT_DEMO_USER = {
 
 export const authService = {
   async login(email, password) {
-    try {
-      const response = await api.post('/auth/login', { email, password });
-      const { access_token, refresh_token, user } = response.data;
-      if (access_token) localStorage.setItem('access_token', access_token);
-      if (refresh_token) localStorage.setItem('refresh_token', refresh_token);
-      const userData = user || { email, name: email.split('@')[0], role: 'Clinician' };
-      localStorage.setItem('user', JSON.stringify(userData));
-      return { success: true, user: userData };
-    } catch (err) {
-      // If backend auth is offline/mock mode for local dev:
-      if (!err.status || err.message.includes('unavailable')) {
-        const mockUser = {
-          ...DEFAULT_DEMO_USER,
-          email,
-          name: email.includes('@') ? email.split('@')[0].toUpperCase() : 'Medical Officer',
-        };
-        const mockToken = 'mock_jwt_token_' + Date.now();
-        localStorage.setItem('access_token', mockToken);
-        localStorage.setItem('refresh_token', mockToken + '_refresh');
-        localStorage.setItem('user', JSON.stringify(mockUser));
-        return { success: true, user: mockUser, isDemo: true };
-      }
-      throw err;
-    }
+    const response = await api.post('/api/auth/login/', {
+      username: email,
+      email,
+      password,
+    });
+    const data = response.data;
+    const access_token = data.access || data.access_token || data.tokens?.access;
+    const refresh_token = data.refresh || data.refresh_token || data.tokens?.refresh;
+    if (access_token) localStorage.setItem('access_token', access_token);
+    if (refresh_token) localStorage.setItem('refresh_token', refresh_token);
+    const userData = data.user || { email, name: email.split('@')[0], role: 'Clinician' };
+    localStorage.setItem('user', JSON.stringify(userData));
+    return { success: true, user: userData };
   },
 
   async register(userData) {
-    try {
-      const response = await api.post('/auth/register', userData);
-      return response.data;
-    } catch (err) {
-      if (!err.status || err.message.includes('unavailable')) {
-        const mockUser = {
-          id: 'usr_' + Date.now(),
-          email: userData.email,
-          name: userData.fullName || userData.name || 'Dr. ' + userData.email.split('@')[0],
-          role: userData.role || 'Resident Physician',
-          department: userData.department || 'General Medicine',
-        };
-        const mockToken = 'mock_jwt_token_' + Date.now();
-        localStorage.setItem('access_token', mockToken);
-        localStorage.setItem('refresh_token', mockToken + '_refresh');
-        localStorage.setItem('user', JSON.stringify(mockUser));
-        return { success: true, user: mockUser, isDemo: true };
-      }
-      throw err;
-    }
+    const response = await api.post('/api/auth/register/', userData);
+    const data = response.data;
+    const access_token = data.access || data.access_token || data.tokens?.access;
+    const refresh_token = data.refresh || data.refresh_token || data.tokens?.refresh;
+    if (access_token) localStorage.setItem('access_token', access_token);
+    if (refresh_token) localStorage.setItem('refresh_token', refresh_token);
+    if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+    return data;
   },
 
   logout() {
@@ -86,16 +63,17 @@ export const authService = {
   async refreshToken() {
     const refreshToken = localStorage.getItem('refresh_token');
     if (!refreshToken) throw new Error('No refresh token available');
-    const response = await api.post('/auth/refresh', { refresh_token: refreshToken });
-    if (response.data.access_token) {
-      localStorage.setItem('access_token', response.data.access_token);
+    const response = await api.post('/api/auth/token/refresh/', { refresh: refreshToken });
+    const newToken = response.data.access || response.data.access_token || response.data.tokens?.access;
+    if (newToken) {
+      localStorage.setItem('access_token', newToken);
     }
     return response.data;
   },
 
   async getMe() {
     try {
-      const response = await api.get('/auth/me');
+      const response = await api.get('/api/auth/me/');
       if (response.data) {
         localStorage.setItem('user', JSON.stringify(response.data));
         return response.data;

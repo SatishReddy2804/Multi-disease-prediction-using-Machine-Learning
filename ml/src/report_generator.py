@@ -21,7 +21,7 @@ from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether, HRFlowable
 )
 
-from ml.src.data_ingestion import load_config
+from ml.src.data_ingestion import load_config, get_project_root
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class ClinicalReportGenerator:
         self.output_dir = Path(
             self.config.get("paths", {}).get(
                 "pdf_dir",
-                "d:/AI based disease prediction using ml/multi_disease_prediction_system/ml/reports/generated_pdfs"
+                get_project_root() / "ml" / "reports" / "generated_pdfs"
             )
         )
         self.output_dir.mkdir(parents=True, exist_ok=True)

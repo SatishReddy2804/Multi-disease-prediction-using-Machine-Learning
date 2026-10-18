@@ -10,12 +10,12 @@ project:
   cv_folds: 5
 
 paths:
-  data_raw_dir: "d:/AI based disease prediction using ml/multi_disease_prediction_system/data/raw"
-  data_processed_dir: "d:/AI based disease prediction using ml/multi_disease_prediction_system/data/processed"
-  models_dir: "d:/AI based disease prediction using ml/multi_disease_prediction_system/ml/models"
-  reports_dir: "d:/AI based disease prediction using ml/multi_disease_prediction_system/ml/reports"
-  figures_dir: "d:/AI based disease prediction using ml/multi_disease_prediction_system/ml/reports/figures"
-  pdf_dir: "d:/AI based disease prediction using ml/multi_disease_prediction_system/ml/reports/generated_pdfs"
+  data_raw_dir: "data/raw"
+  data_processed_dir: "data/processed"
+  models_dir: "ml/models"
+  reports_dir: "ml/reports"
+  figures_dir: "ml/reports/figures"
+  pdf_dir: "ml/reports/generated_pdfs"
 
 # ==============================================================================
 # Disease Dataset Schemas & Preprocessing Configurations

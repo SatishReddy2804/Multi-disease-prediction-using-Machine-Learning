@@ -3,7 +3,7 @@ import api from './api';
 export const crossRiskService = {
   async analyze(diseaseRiskMap) {
     try {
-      const response = await api.post('/cross-risk/analyze', { risks: diseaseRiskMap });
+      const response = await api.post('/api/cross-risk/analyze/', { risks: diseaseRiskMap });
       return response.data;
     } catch {
       // Offline fallback

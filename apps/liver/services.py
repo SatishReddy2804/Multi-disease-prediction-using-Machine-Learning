@@ -95,15 +95,8 @@ class LiverPredictionService:
                 "model_used": raw_pred.get("model_name", "LogisticRegression")
             }
         except Exception as e:
-            logger.error(f"Inference error: {e}")
-            pred_result = {
-                "disease": "liver",
-                "predicted_class": 0,
-                "predicted_probability": 0.28,
-                "risk_level": "Low",
-                "model_used": "Fallback Estimator",
-                "error": str(e)
-            }
+            logger.error(f"Inference error in Liver service: {e}")
+            raise
 
         # 3. Run Uncertainty Shield
         try:

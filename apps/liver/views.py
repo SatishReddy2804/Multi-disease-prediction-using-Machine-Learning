@@ -23,7 +23,8 @@ class LiverPredictView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        serializer = LiverPredictionSerializer(data=request.data)
+        raw_input = request.data.get("inputs", request.data) if isinstance(request.data, dict) else request.data
+        serializer = LiverPredictionSerializer(data=raw_input)
         if not serializer.is_valid():
             return Response(
                 {
@@ -56,7 +57,7 @@ class LiverPredictView(APIView):
             except Exception as e:
                 logger.warning(f"Could not persist liver prediction history: {e}")
 
-            return Response({"success": True, "data": result}, status=status.HTTP_200_OK)
+            return Response({"success": True, "data": result, **result}, status=status.HTTP_200_OK)
 
         except Exception as e:
             logger.exception("Unexpected error in Liver prediction")
