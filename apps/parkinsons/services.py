@@ -68,18 +68,64 @@ PARKINSONS_DISCLAIMER = (
 )
 
 
+# Mapping from clean API keys (used by the serializer) to the exact
+# feature names stored in the trained model bundle.  The bundle was
+# trained with original dataset column names like "MDVP:Fo(Hz)".
+# The serializer normalises those to Python-safe identifiers such as
+# "mdvp_fo".  Without this reverse mapping the inference engine's
+# generic normaliser fails on names that contain parenthesised unit
+# suffixes (Hz, %, Abs, dB) because stripping underscores alone does
+# not reproduce the stripped original.
+API_TO_MODEL_FEATURE_MAP: Dict[str, str] = {
+    "mdvp_fo": "MDVP:Fo(Hz)",
+    "mdvp_fhi": "MDVP:Fhi(Hz)",
+    "mdvp_flo": "MDVP:Flo(Hz)",
+    "mdvp_jitter_percent": "MDVP:Jitter(%)",
+    "mdvp_jitter_abs": "MDVP:Jitter(Abs)",
+    "mdvp_rap": "MDVP:RAP",
+    "mdvp_ppq": "MDVP:PPQ",
+    "jitter_ddp": "Jitter:DDP",
+    "mdvp_shimmer": "MDVP:Shimmer",
+    "mdvp_shimmer_db": "MDVP:Shimmer(dB)",
+    "shimmer_apq3": "Shimmer:APQ3",
+    "shimmer_apq5": "Shimmer:APQ5",
+    "mdvp_apq": "MDVP:APQ",
+    "shimmer_dda": "Shimmer:DDA",
+    "nhr": "NHR",
+    "hnr": "HNR",
+    "rpde": "RPDE",
+    "dfa": "DFA",
+    "spread1": "spread1",
+    "spread2": "spread2",
+    "d2": "D2",
+    "ppe": "PPE",
+}
+
+
 class ParkinsonsPredictionService:
     """Service handling Parkinson's diagnostic inference, explanations, and safety."""
+
+    @staticmethod
+    def _remap_to_model_keys(input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Convert serializer (API) keys to exact model-bundle feature names."""
+        remapped: Dict[str, Any] = {}
+        for key, value in input_data.items():
+            model_key = API_TO_MODEL_FEATURE_MAP.get(key, key)
+            remapped[model_key] = value
+        return remapped
 
     @staticmethod
     def predict(input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Executes end-to-end Parkinson's prediction workflow.
         """
+        # 0. Remap API field names to exact model-bundle feature names
+        model_input = ParkinsonsPredictionService._remap_to_model_keys(input_data)
+
         # 1. Run Data Quality
         try:
             from ml.src.data_quality import score_data_quality
-            dq_raw = score_data_quality("parkinsons", input_data)
+            dq_raw = score_data_quality("parkinsons", model_input)
             dq_result = {"score": dq_raw.get("quality_score", 100), "gate": dq_raw.get("action", "NORMAL"), "checks": dq_raw.get("checks_passed", {})}
         except Exception as e:
             logger.warning(f"Data quality check fallback: {e}")
@@ -88,7 +134,7 @@ class ParkinsonsPredictionService:
         # 2. Run Inference
         try:
             from ml.src.inference import predict_disease
-            raw_pred = predict_disease("parkinsons", input_data)
+            raw_pred = predict_disease("parkinsons", model_input)
             pred_result = {
                 "disease": "parkinsons",
                 "predicted_class": raw_pred["prediction"],
@@ -103,7 +149,7 @@ class ParkinsonsPredictionService:
         # 3. Run Uncertainty Shield
         try:
             from ml.src.uncertainty import check_red_flags
-            flags = check_red_flags("parkinsons", input_data)
+            flags = check_red_flags("parkinsons", model_input)
             prob = pred_result["predicted_probability"]
             unc_level = "High" if 0.40 <= prob <= 0.60 else "Low"
             trust_status = "CRITICAL_RED_FLAG" if flags else ("UNCERTAIN" if unc_level == "High" else "RELIABLE")
@@ -129,7 +175,7 @@ class ParkinsonsPredictionService:
         # 4. Run Explainability
         try:
             from ml.src.explainability import explain_prediction
-            exp_result = explain_prediction("parkinsons", input_data)
+            exp_result = explain_prediction("parkinsons", model_input)
         except Exception as e:
             logger.warning(f"Explainability fallback: {e}")
             exp_result = {"top_features": [], "plot_available": False}

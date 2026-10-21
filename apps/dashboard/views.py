@@ -48,7 +48,11 @@ class ModelEvaluationView(APIView):
 
     def get(self, request):
         data = get_model_evaluation_data()
-        return Response(data, status=status.HTTP_200_OK)
+        payload = dict(data) if isinstance(data, dict) else {}
+        payload["models"] = data
+        payload["success"] = True
+        payload["data"] = data
+        return Response(payload, status=status.HTTP_200_OK)
 
 
 class HealthCheckView(APIView):
