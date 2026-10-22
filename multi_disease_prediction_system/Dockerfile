@@ -26,6 +26,6 @@ RUN python manage.py collectstatic --no-input
 
 EXPOSE 8000
 
-# Use sh -c so $PORT provided dynamically by Render is expanded properly
-CMD ["sh", "-c", "gunicorn backend.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --threads 2 --timeout 120"]
+# Use sh -c so migrations run on startup, then gunicorn starts
+CMD ["sh", "-c", "python manage.py migrate --no-input && gunicorn backend.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --threads 2 --timeout 120"]
 

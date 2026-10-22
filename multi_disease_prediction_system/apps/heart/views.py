@@ -98,23 +98,32 @@ class HeartPredictView(APIView):
                 data_quality_score=quality_score,
             )
 
-            # 8. Save to PredictionHistory
-            user = request.user if request.user.is_authenticated else None
-            history_record = PredictionHistory.objects.create(
-                user=user,
-                disease_type="heart",
-                input_data=validated_data,
-                prediction_result=res_code,
-                probability=prob,
-                risk_level=risk_level,
-                uncertainty_level=uncertainty_result.get("uncertainty_level", "Low"),
-                trust_status=uncertainty_result.get("trust_status", "High Trust"),
-                data_quality_score=quality_score,
-            )
+            # 8. Save to PredictionHistory (safely, do not let DB history failure fail inference)
+            history_id = None
+            history_created_at = None
+            try:
+                user = request.user if request.user.is_authenticated else None
+                history_record = PredictionHistory.objects.create(
+                    user=user,
+                    disease_type="heart",
+                    input_data=validated_data,
+                    prediction_result=res_code,
+                    probability=prob,
+                    risk_level=risk_level,
+                    uncertainty_level=uncertainty_result.get("uncertainty_level", "Low"),
+                    trust_status=uncertainty_result.get("trust_status", "High Trust"),
+                    data_quality_score=quality_score,
+                )
+                history_id = history_record.id
+                history_created_at = history_record.created_at
+            except Exception as hist_err:
+                logger.warning(f"Could not persist heart prediction history: {hist_err}")
+                from datetime import datetime
+                history_created_at = datetime.utcnow().isoformat()
 
             # 9. Return comprehensive response
             resp_payload = {
-                "prediction_id": history_record.id,
+                "prediction_id": history_id,
                 "disease_type": "heart",
                 "disease": "heart",
                 "prediction_result": res_code,
@@ -129,7 +138,7 @@ class HeartPredictView(APIView):
                 "prevention_guidance": prediction_result.get("prevention_guidance", []),
                 "medicine_information": prediction_result.get("medicine_information", []),
                 "disclaimer": prediction_result.get("disclaimer", ""),
-                "timestamp": history_record.created_at,
+                "timestamp": history_created_at,
             }
             return Response(
                 {
