@@ -134,6 +134,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
+        "apps.accounts.authentication.SupabaseAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
@@ -157,6 +158,10 @@ REST_FRAMEWORK = {
     },
     "EXCEPTION_HANDLER": "apps.accounts.utils.custom_exception_handler",
 }
+
+# Supabase Auth Configuration
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://qwudleauzofzfdkeklvq.supabase.co")
+SUPABASE_JWT_SECRET = os.environ.get("SUPABASE_JWT_SECRET", "")
 
 # JWT Settings
 SIMPLE_JWT = {

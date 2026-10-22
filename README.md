@@ -30,6 +30,7 @@
   - [2. Model Training](#2-model-training)
   - [3. Frontend Setup](#3-frontend-setup)
 - [Configuration & Environment Variables](#configuration--environment-variables)
+- [Supabase Authentication Setup](#supabase-authentication-setup)
 - [Usage Workflows](#usage-workflows)
 - [API Reference](#api-reference)
 - [Model Evaluation](#model-evaluation)
@@ -239,7 +240,7 @@ flowchart LR
 | **Backend Framework** | Django / Django REST Framework | 5.2 / 3.18 | Robust RESTful Web API, Serializers, Routing |
 | **Language Runtime** | Python | 3.11+ | Primary backend and scientific computing runtime |
 | **Database** | PostgreSQL / SQLite | 16 / 3.x | Persistent storage for history, auth, and audits |
-| **Authentication** | Django SimpleJWT | 5.3+ | Stateless JSON Web Token access & refresh flows |
+| **Authentication** | Supabase Auth / Django REST Framework | Supabase JS 2.x | User registration, login, and bearer-token authentication |
 | **Machine Learning** | scikit-learn | 1.4.2 | Preprocessing, pipeline orchestration, tree classifiers |
 | **Gradient Boosting** | XGBoost | 2.0+ / 3.2 | High-performance gradient boosted decision trees |
 | **Resampling** | Imbalanced-learn | 0.12+ | Synthetic Minority Over-sampling Technique (SMOTE) |
@@ -340,7 +341,7 @@ cp .env.example .env
 npm run dev
 ```
 
-The application interface will be live at `http://localhost:3000/` (or `http://localhost:5173/`).
+The application interface will be live at `http://localhost:5173/`.
 
 ---
 
@@ -359,9 +360,12 @@ The application interface will be live at `http://localhost:3000/` (or `http://l
 | `MODEL_DIRECTORY` | Absolute or relative path to serialized model joblib files | `ml/models` |
 | `DATA_DIRECTORY` | Directory containing raw and processed CSV datasets | `data` |
 | `REPORT_DIRECTORY` | Output directory for generated clinical PDF reports | `media/reports` |
-| `FRONTEND_URL` | Canonical frontend domain for CORS/redirects | `http://localhost:3000` |
-| `BACKEND_URL` | Canonical backend API domain | `http://localhost:8000` |
-| `JWT_ACCESS_TOKEN_LIFETIME_MINUTES`| Validity duration of JWT access tokens | `60` |
+| `FRONTEND_URL` | Canonical frontend domain for CORS/redirects | `http://localhost:5173` |
+| `BACKEND_URL` | Canonical backend API domain | `http://localhost:8080` |
+| `JWT_ACCESS_TOKEN_LIFETIME_MINUTES` | Validity duration of Django-issued JWT access tokens | `60` |
+| `JWT_REFRESH_TOKEN_LIFETIME_DAYS` | Validity duration of Django-issued JWT refresh tokens | `7` |
+| `SUPABASE_URL` | Supabase project URL used to validate Supabase Auth tokens | Set in `.env.example` |
+| `SUPABASE_JWT_SECRET` | Optional signing secret for HMAC-signed Supabase tokens | Leave unset unless required |
 
 ### Frontend Configuration (`frontend/.env`)
 
@@ -370,6 +374,14 @@ The application interface will be live at `http://localhost:3000/` (or `http://l
 | `VITE_API_BASE_URL` | Base endpoint for the Django REST API | `http://localhost:8000` |
 | `VITE_APP_NAME` | Clinical Platform application header title | `Multi-Disease Prediction System` |
 | `VITE_APP_ENVIRONMENT` | Active build target environment (`development` / `production`) | `development` |
+| `VITE_SUPABASE_URL` | Supabase project URL for browser authentication | Set in `frontend/.env.example` |
+| `VITE_SUPABASE_ANON_KEY` | Supabase publishable/anon key used by the frontend | Obtain from Supabase project API settings |
+
+Copy the example files to `.env` and `frontend/.env` before running the application. Do not put a Supabase service-role key or other private credentials in frontend configuration or commit them to Git.
+
+## Supabase Authentication Setup
+
+The frontend uses Supabase Auth for account registration, sign-in, and persistent sessions. The Django API accepts Supabase bearer tokens and associates authenticated identities with local Django users. For dashboard configuration, redirect URLs, email confirmation options, and the optional profile schema, see [SUPABASE_SETUP.md](./SUPABASE_SETUP.md). The SQL for the optional Supabase profile table and row-level security policies is in [supabase_schema.sql](./supabase_schema.sql).
 
 ---
 

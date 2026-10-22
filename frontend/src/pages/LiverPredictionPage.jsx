@@ -4,6 +4,7 @@ import PredictionCard from '../components/PredictionCard';
 import WhatIfPanel from '../components/WhatIfPanel';
 import { predictionService } from '../services/predictionService';
 import { reportService } from '../services/reportService';
+import { formatApiError } from '../utils/helpers';
 import toast from 'react-hot-toast';
 
 const initialInputs = {
@@ -42,10 +43,11 @@ export default function LiverPredictionPage() {
         setResult(res.data.data);
         toast.success("Liver functional risk assessed successfully");
       } else {
-        toast.error(res.data?.error || "Inference failed");
+        const msg = res.data?.error || "Inference failed";
+        toast.error(typeof msg === 'object' ? JSON.stringify(msg) : String(msg));
       }
     } catch (err) {
-      toast.error(err.response?.data?.error || "Network error contacting prediction backend");
+      toast.error(formatApiError(err, "Failed to assess liver risk"));
     } finally {
       setLoading(false);
     }

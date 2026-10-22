@@ -134,7 +134,7 @@ class DiabetesPredictionService:
             raise FileNotFoundError("Model not trained yet.")
 
         risk_level = cls.get_risk_level(probability)
-        explanation = cls._get_explainability(data, probability)
+        explanation = cls._get_explainability(mapped_data, probability)
 
         return {
             "disease_type": "diabetes",

@@ -1,7 +1,11 @@
+import time
+import jwt
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIRequestFactory
+from rest_framework.exceptions import AuthenticationFailed
+from apps.accounts.authentication import SupabaseAuthentication
 
 
 class AccountTests(APITestCase):
@@ -60,3 +64,46 @@ class AccountTests(APITestCase):
         response = self.client.get(self.me_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["username"], "authdoctor")
+
+    def test_supabase_token_authentication(self):
+        """Test SupabaseAuthentication backend maps JWT claims to Django User."""
+        secret = "test-supabase-jwt-secret-key-32-chars-long!"
+        auth_backend = SupabaseAuthentication()
+        auth_backend.supabase_jwt_secret = secret
+
+        payload = {
+            "sub": "supabase-usr-uuid-12345",
+            "email": "clinician@hospital.org",
+            "exp": time.time() + 3600,
+            "user_metadata": {"full_name": "Dr. Sarah Connor"},
+        }
+        token = jwt.encode(payload, secret, algorithm="HS256")
+
+        factory = APIRequestFactory()
+        request = factory.get(self.me_url, HTTP_AUTHORIZATION=f"Bearer {token}")
+        result = auth_backend.authenticate(request)
+
+        self.assertIsNotNone(result)
+        user, returned_token = result
+        self.assertEqual(user.username, "supabase-usr-uuid-12345")
+        self.assertEqual(user.email, "clinician@hospital.org")
+        self.assertEqual(user.first_name, "Dr. Sarah Connor")
+        self.assertEqual(returned_token, token)
+
+    def test_supabase_expired_token_rejected(self):
+        """Expired Supabase token must raise AuthenticationFailed."""
+        secret = "test-supabase-jwt-secret-key-32-chars-long!"
+        auth_backend = SupabaseAuthentication()
+        auth_backend.supabase_jwt_secret = secret
+
+        expired_payload = {
+            "sub": "supabase-usr-uuid-expired",
+            "email": "expired@hospital.org",
+            "exp": time.time() - 3600,
+        }
+        token = jwt.encode(expired_payload, secret, algorithm="HS256")
+
+        factory = APIRequestFactory()
+        request = factory.get(self.me_url, HTTP_AUTHORIZATION=f"Bearer {token}")
+        with self.assertRaises(AuthenticationFailed):
+            auth_backend.authenticate(request)

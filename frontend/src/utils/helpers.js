@@ -153,3 +153,27 @@ export function downloadJsonFile(data, filename = 'medical_report.json') {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+/**
+ * Safely format API error response (handles string, object, array, details)
+ */
+export function formatApiError(err, fallback = 'Operation failed') {
+  if (!err) return fallback;
+  if (typeof err === 'string') return err;
+  if (err.response?.data) {
+    const data = err.response.data;
+    if (typeof data === 'string') return data;
+    if (data.error && typeof data.error === 'string') return data.error;
+    if (data.detail && typeof data.detail === 'string') return data.detail;
+    if (data.message && typeof data.message === 'string') return data.message;
+    if (data.details) {
+      if (typeof data.details === 'string') return data.details;
+      if (typeof data.details === 'object') {
+        const parts = Object.entries(data.details).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`);
+        return parts.join(' | ');
+      }
+    }
+  }
+  if (err.message) return err.message;
+  return fallback;
+}

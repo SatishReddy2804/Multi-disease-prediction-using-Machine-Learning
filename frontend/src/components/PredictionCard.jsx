@@ -161,9 +161,12 @@ export default function PredictionCard({
                 <span>Clinical Red Flag Alerts Detected</span>
               </div>
               <ul className="text-xs text-rose-800 dark:text-rose-200 space-y-1 pl-5 list-disc">
-                {prediction.redFlags.map((flag, idx) => (
-                  <li key={idx}>{flag}</li>
-                ))}
+                {prediction.redFlags.map((flag, idx) => {
+                  const flagText = typeof flag === 'object' && flag !== null
+                    ? flag.alert || flag.action || flag.finding || JSON.stringify(flag)
+                    : String(flag);
+                  return <li key={idx}>{flagText}</li>;
+                })}
               </ul>
             </div>
           )}
@@ -174,7 +177,11 @@ export default function PredictionCard({
               <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold block">Cross-System Comorbidity Warning</span>
-                <span>{prediction.crossRiskAlert}</span>
+                <span>
+                  {typeof prediction.crossRiskAlert === 'object' && prediction.crossRiskAlert !== null
+                    ? prediction.crossRiskAlert.warning || prediction.crossRiskAlert.message || JSON.stringify(prediction.crossRiskAlert)
+                    : String(prediction.crossRiskAlert)}
+                </span>
               </div>
             </div>
           )}
@@ -203,12 +210,17 @@ export default function PredictionCard({
           {showPrevention && (
             <div className="p-4 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700">
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs text-slate-700 dark:text-slate-300">
-                {(prediction.recommendations || []).map((tip, idx) => (
-                  <li key={idx} className="flex items-start space-x-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary-500 mt-1.5 shrink-0" />
-                    <span>{tip}</span>
-                  </li>
-                ))}
+                {(prediction.recommendations || []).map((tip, idx) => {
+                  const tipText = typeof tip === 'object' && tip !== null
+                    ? (tip.title ? `${tip.title}: ` : '') + (tip.detail || tip.description || JSON.stringify(tip))
+                    : String(tip);
+                  return (
+                    <li key={idx} className="flex items-start space-x-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary-500 mt-1.5 shrink-0" />
+                      <span>{tipText}</span>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           )}
@@ -234,15 +246,21 @@ export default function PredictionCard({
                 * Informational reference for prescribing physicians only. Never initiate or alter dosages without direct patient examination.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {(prediction.medications || []).map((med, idx) => (
-                  <div key={idx} className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 text-xs">
-                    <div className="flex justify-between font-bold text-slate-800 dark:text-slate-200">
-                      <span>{med.name}</span>
-                      <span className="text-primary-600 dark:text-primary-400 font-mono text-[11px]">{med.dose}</span>
+                {(prediction.medications || []).map((med, idx) => {
+                  const isObj = typeof med === 'object' && med !== null;
+                  const medName = isObj ? (med.name || med.class || 'Clinical Pharmacotherapy') : String(med);
+                  const medDose = isObj ? (med.dose || med.class || med.purpose || '') : '';
+                  const medDesc = isObj ? (med.indication || med.purpose || med.note || med.usage_notes || '') : '';
+                  return (
+                    <div key={idx} className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 text-xs">
+                      <div className="flex justify-between font-bold text-slate-800 dark:text-slate-200">
+                        <span>{medName}</span>
+                        {medDose && <span className="text-primary-600 dark:text-primary-400 font-mono text-[11px]">{medDose}</span>}
+                      </div>
+                      {medDesc && <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{medDesc}</p>}
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">{med.indication}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

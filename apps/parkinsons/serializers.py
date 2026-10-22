@@ -136,11 +136,18 @@ class ParkinsonsPredictionSerializer(serializers.Serializer):
         return super().to_internal_value(normalized)
 
     def validate(self, attrs):
-        # Ensure at least key voice features are present
-        required_keys = ["mdvp_fo", "mdvp_fhi", "mdvp_flo", "hnr", "ppe"]
-        missing = [k for k in required_keys if attrs.get(k) is None]
+        # Ensure all 22 model features are present and finite numbers
+        all_expected = list(self.RAW_KEY_MAPPING.values())
+        missing = [k for k in all_expected if attrs.get(k) is None]
         if missing:
             raise serializers.ValidationError(
-                f"Missing critical voice biomarker inputs: {', '.join(missing)}."
+                f"Missing required voice biomarker inputs: {', '.join(missing)}."
             )
+        import math
+        for k in all_expected:
+            v = attrs.get(k)
+            if v is not None and (math.isnan(v) or math.isinf(v)):
+                raise serializers.ValidationError(
+                    {k: f"Feature '{k}' must be a finite numeric value."}
+                )
         return attrs

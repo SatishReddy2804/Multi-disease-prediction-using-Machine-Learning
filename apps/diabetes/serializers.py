@@ -43,3 +43,23 @@ class DiabetesPredictionSerializer(serializers.Serializer):
         validators=[MinValueValidator(1), MaxValueValidator(120)],
         help_text="Age in years (1 - 120)",
     )
+
+    RAW_KEY_MAPPING = {
+        "Pregnancies": "pregnancies",
+        "Glucose": "glucose",
+        "BloodPressure": "blood_pressure",
+        "SkinThickness": "skin_thickness",
+        "Insulin": "insulin",
+        "BMI": "bmi",
+        "DiabetesPedigreeFunction": "diabetes_pedigree",
+        "Age": "age",
+    }
+
+    def to_internal_value(self, data):
+        normalized = {}
+        for k, v in data.items():
+            if k in self.RAW_KEY_MAPPING:
+                normalized[self.RAW_KEY_MAPPING[k]] = v
+            else:
+                normalized[k] = v
+        return super().to_internal_value(normalized)

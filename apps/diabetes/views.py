@@ -63,7 +63,8 @@ class DiabetesPredictView(APIView):
             except FileNotFoundError:
                 return Response(
                     {
-                        "error": "Model not trained yet",
+                        "success": False,
+                        "error": "Diabetes prediction model artifact not found. Please contact administrator.",
                         "status": "model_unavailable",
                         "disease_type": "diabetes",
                         "data_quality": quality_result,
@@ -72,16 +73,15 @@ class DiabetesPredictView(APIView):
                     status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 )
             except Exception as e:
-                logger.warning(f"Inference module execution failure: {e}")
+                logger.exception(f"Inference module execution failure: {e}")
                 return Response(
                     {
-                        "warning": "ML pipeline degraded. Partial results returned.",
-                        "status": "partial_success",
+                        "success": False,
+                        "error": f"Inference engine failure during diabetes evaluation: {str(e)}",
+                        "status": "service_error",
                         "disease_type": "diabetes",
-                        "data_quality": quality_result,
-                        "triage": triage_result,
                     },
-                    status=status.HTTP_200_OK,
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
             prob = prediction_result.get("probability", 0.0)
