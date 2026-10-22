@@ -22,6 +22,7 @@
 - [Why This Project](#why-multi-disease-prediction-and-clinical-decision-support-system)
 - [Key Features](#key-features)
 - [System Architecture](#system-architecture)
+- [Project Directory Structure](#project-directory-structure)
 - [Disease Prediction Modules](#disease-prediction-modules)
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
@@ -183,6 +184,200 @@ flowchart LR
 ```
 
 ---
+
+---
+
+## Project Directory Structure
+
+### Architecture & Component Map (Mermaid)
+
+```mermaid
+graph TD
+    Root["Multi-disease-prediction-using-Machine-Learning/"]
+    Root --> MDPS["multi_disease_prediction_system/"]
+    
+    subgraph DjangoApps ["Django Applications (apps/)"]
+        MDPS --> Apps["apps/"]
+        Apps --> A1["accounts/ (Supabase Auth and JWT)"]
+        Apps --> A2["heart/ (Heart Disease Module)"]
+        Apps --> A3["diabetes/ (Diabetes Module)"]
+        Apps --> A4["parkinsons/ (Parkinsons 22 Voice Biomarkers)"]
+        Apps --> A5["liver/ (Liver Disease Module)"]
+        Apps --> A6["dashboard/ (Analytics and Health Check)"]
+        Apps --> A7["cross_risk/ (Comorbidity Engine)"]
+        Apps --> A8["data_quality/ (Validation and Outlier Guard)"]
+        Apps --> A9["reports/ (PDF Report Generation)"]
+        Apps --> A10["triage/ (Emergency Red-Flag Alerts)"]
+        Apps --> A11["uncertainty/ (OOD and Confidence Shield)"]
+        Apps --> A12["what_if/ (Counterfactual Simulator)"]
+    end
+
+    subgraph BackendCore ["Django Core (backend/)"]
+        MDPS --> Backend["backend/"]
+        Backend --> B1["settings.py (CORS, WhiteNoise, DB)"]
+        Backend --> B2["urls.py (Master API and health Router)"]
+        Backend --> B3["wsgi.py and asgi.py (Production Entrypoints)"]
+    end
+
+    subgraph MLSubsystem ["Machine Learning Engine (ml/)"]
+        MDPS --> ML["ml/"]
+        ML --> ML1["models/ (Trained .joblib Model Bundles)"]
+        ML --> ML2["src/ (Inference, Cleaning, Explainability, XAI)"]
+        ML --> ML3["config/ (model_config.yaml Thresholds)"]
+    end
+
+    subgraph CanonicalData ["Clinical Datasets (data/)"]
+        MDPS --> Data["data/raw/"]
+        Data --> D1["heart.csv, diabetes.csv, parkinsons.csv, liver.csv"]
+    end
+
+    subgraph ReactFrontend ["React 18 + Vite SPA (frontend/)"]
+        MDPS --> Frontend["frontend/"]
+        Frontend --> F1["src/components/ (Prediction, Result and Risk UI)"]
+        Frontend --> F2["src/pages/ (Disease Prediction and Dashboard Views)"]
+        Frontend --> F3["src/services/ (api.js Central Axios Client)"]
+        Frontend --> F4["src/context/ (AuthContext.jsx Supabase Session)"]
+        Frontend --> F5["vite.config.js and tailwind.config.js"]
+    end
+
+    subgraph DevOps ["DevOps and Cloud Deployment"]
+        MDPS --> C1["Dockerfile (Render Production Container)"]
+        MDPS --> C2[".dockerignore (Security and Image Optimization)"]
+        MDPS --> C3["requirements.txt (Python Dependencies)"]
+        MDPS --> C4["build.sh (Static Assets and Migrations Script)"]
+        MDPS --> C5["netlify.toml (SPA Rewrites and Scanner Bypass)"]
+        MDPS --> C6["supabase_schema.sql (PostgreSQL Schema)"]
+    end
+```
+
+### Full Repository Tree
+
+```text
+Multi-disease-prediction-using-Machine-Learning/
+│
+└── multi_disease_prediction_system/
+    │
+    ├── apps/                                  # Django Applications
+    │   ├── accounts/                          # User accounts, auth & Supabase JWT authentication
+    │   │   ├── migrations/
+    │   │   ├── authentication.py              # SupabaseAuthentication class
+    │   │   ├── models.py
+    │   │   ├── serializers.py
+    │   │   ├── urls.py
+    │   │   ├── utils.py
+    │   │   └── views.py
+    │   │
+    │   ├── heart/                             # Heart Disease Prediction module
+    │   │   ├── models.py, serializers.py, services.py, urls.py, views.py
+    │   │
+    │   ├── diabetes/                          # Diabetes Prediction module
+    │   │   ├── models.py, serializers.py, services.py, urls.py, views.py
+    │   │
+    │   ├── parkinsons/                        # Parkinson's Prediction module (22 voice biomarkers)
+    │   │   ├── models.py, serializers.py, services.py, urls.py, views.py
+    │   │
+    │   ├── liver/                             # Liver Disease Prediction module
+    │   │   ├── models.py, serializers.py, services.py, urls.py, views.py
+    │   │
+    │   ├── dashboard/                         # Analytics, Prediction History, Health Check
+    │   │   ├── models.py, serializers.py, services.py, urls.py, views.py
+    │   │
+    │   ├── cross_risk/                        # Multi-morbidity cross-risk analysis engine
+    │   ├── data_quality/                      # Input validation, outlier detection & scoring
+    │   ├── reports/                           # PDF clinical summary report generator
+    │   ├── triage/                            # Clinical risk triage recommendation
+    │   ├── uncertainty/                       # OOD detection, model agreement & confidence
+    │   └── what_if/                           # What-If risk factor simulation engine
+    │
+    ├── backend/                               # Django Core Configuration
+    │   ├── __init__.py
+    │   ├── asgi.py                            # ASGI entrypoint
+    │   ├── settings.py                        # Django settings (CORS, Supabase, DB, WhiteNoise)
+    │   ├── urls.py                            # Main URL router & /health/ endpoints
+    │   └── wsgi.py                            # Production WSGI application
+    │
+    ├── ml/                                    # Machine Learning Core Engine & Models
+    │   ├── config/
+    │   │   └── model_config.yaml              # ML hyperparameters and threshold configurations
+    │   ├── models/                            # Trained Model Bundles & Transformers
+    │   │   ├── heart_model_bundle.joblib      # Heart XGBoost pipeline
+    │   │   ├── diabetes_model_bundle.joblib   # Diabetes Random Forest pipeline
+    │   │   ├── parkinsons_model_bundle.joblib # Parkinson's KNN + scaler bundle
+    │   │   ├── liver_model_bundle.joblib      # Liver Logistic Regression bundle
+    │   │   └── ... (scalers, cleaners & isolation forests)
+    │   └── src/
+    │       ├── data_cleaning.py               # Preprocessing pipelines
+    │       ├── explainability.py              # SHAP feature importance
+    │       ├── inference.py                   # ModelRegistry singleton & prediction runners
+    │       └── training.py                    # Training scripts
+    │
+    ├── data/                                  # Canonical Clinical Datasets
+    │   └── raw/
+    │       ├── heart.csv
+    │       ├── diabetes.csv
+    │       ├── parkinsons.csv
+    │       └── liver.csv
+    │
+    ├── frontend/                              # React + Vite Frontend Application
+    │   ├── public/
+    │   │   └── favicon.svg
+    │   ├── src/
+    │   │   ├── assets/
+    │   │   ├── components/                    # Reusable UI widgets
+    │   │   │   ├── common/                    # Navbar, Footer, ProtectedRoute, ErrorBoundary
+    │   │   │   ├── dashboard/                 # HistoryTable, StatCards, RiskDistributionChart
+    │   │   │   └── prediction/                # PredictionResultCard, MedicineCard, RiskMeter
+    │   │   ├── context/
+    │   │   │   └── AuthContext.jsx            # Supabase Auth provider & session management
+    │   │   ├── hooks/                         # Custom React hooks
+    │   │   ├── pages/                         # Main Application Routes
+    │   │   │   ├── HomePage.jsx
+    │   │   │   ├── LoginPage.jsx
+    │   │   │   ├── RegisterPage.jsx
+    │   │   │   ├── DashboardPage.jsx
+    │   │   │   ├── HeartPredictionPage.jsx
+    │   │   │   ├── DiabetesPredictionPage.jsx
+    │   │   │   ├── ParkinsonsPredictionPage.jsx
+    │   │   │   └── LiverPredictionPage.jsx
+    │   │   ├── services/                      # API Client Services
+    │   │   │   ├── api.js                     # Central Axios instance with JWT interceptor
+    │   │   │   ├── authService.js             # Supabase & backend authentication
+    │   │   │   ├── predictionService.js       # Endpoints for all 4 diseases
+    │   │   │   ├── crossRiskService.js
+    │   │   │   ├── dataQualityService.js
+    │   │   │   ├── reportService.js
+    │   │   │   └── whatIfService.js
+    │   │   ├── utils/
+    │   │   ├── App.jsx                        # Main React Router switch
+    │   │   ├── index.css                      # Tailwind CSS styles
+    │   │   └── main.jsx                       # Application entrypoint
+    │   ├── index.html
+    │   ├── netlify.toml                       # Netlify SPA redirect rules
+    │   ├── package.json                       # Frontend dependencies (React 18, Vite 5, Tailwind)
+    │   ├── postcss.config.js
+    │   ├── tailwind.config.js
+    │   └── vite.config.js                     # Vite build configuration
+    │
+    ├── media/                                 # Generated PDF reports & static media
+    ├── templates/                             # Django HTML templates
+    ├── manage.py                              # Django CLI management script
+    │
+    ├── Dockerfile                             # Render production container definition
+    ├── .dockerignore                          # Prevents bloated images and secret leaks
+    ├── requirements.txt                       # Backend Python dependencies
+    ├── build.sh                               # Render build script (pip, collectstatic, migrate)
+    ├── netlify.toml                           # Root Netlify redirect rules
+    ├── supabase_schema.sql                    # SQL migration script for Supabase tables
+    │
+    └── Documentation & Setup Guides:
+        ├── DEPLOY_RENDER_NETLIFY.md           # Click-by-click Render + Netlify deployment guide
+        ├── DEPLOYMENT_ENV_REFERENCE.md        # Reference table for all environment variables
+        ├── DEPLOYMENT_TROUBLESHOOTING.md      # Troubleshooting CORS, 404s, and health checks
+        ├── LOCAL_RUN_GUIDE.md                 # Instructions to run locally
+        ├── API_CONTRACT.md                    # Backend REST API contracts
+        ├── REPAIR_AUDIT.md                    # ML models audit & bugfix report
+        └── README.md                          # Project documentation
+```
 
 ## Disease Prediction Modules
 
