@@ -7,17 +7,44 @@ import toast from 'react-hot-toast';
 
 export default function WhatIfPanel({
   disease = 'heart',
-  originalInputs = {},
-  baselineProbability = 0.65,
+  originalInputs,
+  baselineInputs,
+  baselineProbability,
+  currentProbability: currentProbProp,
   fields = [],
   className = '',
 }) {
-  const [modifiedInputs, setModifiedInputs] = useState({ ...originalInputs });
+  const actualOriginalInputs = originalInputs || baselineInputs || {};
+  const actualBaselineProb = baselineProbability ?? currentProbProp ?? 0.65;
+
+  const [modifiedInputs, setModifiedInputs] = useState({ ...actualOriginalInputs });
   const [simulationResult, setSimulationResult] = useState(null);
   const [isSimulating, setIsSimulating] = useState(false);
 
-  // Filter fields that are modifiable (exclude age, sex, etc. or focus on lifestyle/biomarkers)
-  const modifiableFields = fields.filter((f) => {
+  // Sync if baseline inputs change (e.g. switching diseases or new prediction)
+  React.useEffect(() => {
+    setModifiedInputs({ ...(originalInputs || baselineInputs || {}) });
+    setSimulationResult(null);
+  }, [disease, originalInputs, baselineInputs]);
+
+  // If fields are not provided externally, generate modifiable fields automatically from inputs
+  const resolvedFields = (fields && fields.length > 0)
+    ? fields
+    : Object.keys(actualOriginalInputs)
+        .filter((k) => !['age', 'sex', 'gender', 'patientid', 'fullname', 'name'].includes(k.toLowerCase()))
+        .map((k) => {
+          const val = Number(actualOriginalInputs[k]) || 0;
+          return {
+            name: k,
+            label: k.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+            defaultValue: val,
+            min: val > 10 ? Math.floor(val * 0.4) : 0,
+            max: val > 10 ? Math.ceil(val * 1.8) : (val > 1 ? Math.ceil(val * 2.5) : 5),
+            step: val > 10 ? 1 : 0.05,
+          };
+        });
+
+  const modifiableFields = resolvedFields.filter((f) => {
     const name = f.name.toLowerCase();
     return !['age', 'sex', 'gender'].includes(name);
   });
@@ -30,7 +57,7 @@ export default function WhatIfPanel({
   };
 
   const handleReset = () => {
-    setModifiedInputs({ ...originalInputs });
+    setModifiedInputs({ ...actualOriginalInputs });
     setSimulationResult(null);
     toast.success('Simulation parameters reset to baseline.');
   };
@@ -38,7 +65,7 @@ export default function WhatIfPanel({
   const handleRunSimulation = async () => {
     setIsSimulating(true);
     try {
-      const res = await whatIfService.simulate(disease, originalInputs, modifiedInputs);
+      const res = await whatIfService.simulate(disease, actualOriginalInputs, modifiedInputs);
       setSimulationResult(res);
       toast.success('Counterfactual scenario simulated!');
     } catch {
@@ -48,7 +75,7 @@ export default function WhatIfPanel({
     }
   };
 
-  const currentProbability = simulationResult ? simulationResult.modifiedProbability : baselineProbability;
+  const currentProbability = simulationResult ? (simulationResult.modifiedProbability ?? simulationResult.counterfactual_probability ?? actualBaselineProb) : actualBaselineProb;
   const delta = simulationResult ? simulationResult.delta : 0;
   const deltaPercent = simulationResult ? simulationResult.deltaPercent : 0;
 

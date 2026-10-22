@@ -13,7 +13,8 @@ import { Radar } from 'react-chartjs-2';
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
 export default function CrossRiskRadarChart({
-  scores = { heart: 0.4, diabetes: 0.5, liver: 0.25, parkinsons: 0.2 },
+  scores,
+  data: dataProp,
   cluster = 'Cardiometabolic Risk Cluster',
   className = '',
 }) {
@@ -21,17 +22,34 @@ export default function CrossRiskRadarChart({
   const textColor = isDarkMode ? '#cbd5e1' : '#334155';
   const gridColor = isDarkMode ? 'rgba(71, 85, 105, 0.4)' : 'rgba(226, 232, 240, 0.8)';
 
+  // Support both scores object or radar_chart_data array
+  let heartVal = 40;
+  let diabetesVal = 50;
+  let liverVal = 25;
+  let parkinsonsVal = 20;
+
+  if (Array.isArray(dataProp) && dataProp.length > 0) {
+    dataProp.forEach((item) => {
+      const d = (item.disease || '').toLowerCase();
+      const s = typeof item.score === 'number' ? item.score : parseFloat(item.score) || 0;
+      if (d.includes('heart')) heartVal = s;
+      else if (d.includes('diabet')) diabetesVal = s;
+      else if (d.includes('liver')) liverVal = s;
+      else if (d.includes('parkinson')) parkinsonsVal = s;
+    });
+  } else if (scores) {
+    heartVal = Math.round((scores.heart ?? 0.4) * 100);
+    diabetesVal = Math.round((scores.diabetes ?? 0.5) * 100);
+    liverVal = Math.round((scores.liver ?? 0.25) * 100);
+    parkinsonsVal = Math.round((scores.parkinsons ?? 0.2) * 100);
+  }
+
   const data = {
     labels: ['Cardiovascular', 'Type 2 Diabetes', 'Hepatic / Liver', "Parkinson's Voice"],
     datasets: [
       {
         label: 'Patient Risk Profile',
-        data: [
-          Math.round((scores.heart || 0) * 100),
-          Math.round((scores.diabetes || 0) * 100),
-          Math.round((scores.liver || 0) * 100),
-          Math.round((scores.parkinsons || 0) * 100),
-        ],
+        data: [heartVal, diabetesVal, liverVal, parkinsonsVal],
         backgroundColor: 'rgba(37, 99, 235, 0.25)',
         borderColor: '#2563EB',
         borderWidth: 2.5,

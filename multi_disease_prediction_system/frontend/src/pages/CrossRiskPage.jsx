@@ -34,8 +34,9 @@ export default function CrossRiskPage() {
       };
 
       const res = await crossRiskService.analyze(payload);
-      if (res.data?.success) {
-        setAnalysis(res.data.data);
+      if (res.data || res.success) {
+        const dataObj = res.data?.data || res.data || res;
+        setAnalysis(dataObj);
         toast.success("Multi-organ cross-risk syndromic analysis complete");
       }
     } catch (err) {

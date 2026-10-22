@@ -29,6 +29,23 @@ class CrossRiskService:
             preds_dict = {p["disease"]: p for p in predictions}
             result = evaluate_cross_disease_risk(preds_dict)
             result["disclaimer"] = CROSS_RISK_DISCLAIMER
+
+            prob_map = {p["disease"]: p["probability"] for p in predictions}
+            heart_p = prob_map.get("heart", 0.2)
+            diab_p = prob_map.get("diabetes", 0.2)
+            liver_p = prob_map.get("liver", 0.2)
+            park_p = prob_map.get("parkinsons", 0.1)
+
+            radar_data = [
+                {"disease": "Heart Disease", "score": round(heart_p * 100, 1)},
+                {"disease": "Diabetes", "score": round(diab_p * 100, 1)},
+                {"disease": "Liver Disease", "score": round(liver_p * 100, 1)},
+                {"disease": "Parkinson's Disease", "score": round(park_p * 100, 1)},
+            ]
+            result["radar_chart_data"] = radar_data
+            result["scores"] = {"heart": heart_p, "diabetes": diab_p, "liver": liver_p, "parkinsons": park_p}
+            result["primary_cluster"] = result.get("detected_clusters", [{}])[0].get("cluster_name", "Multi-System Profile") if result.get("detected_clusters") else "Isolated / Baseline Profile"
+            result["recommended_specialist"] = ", ".join(result.get("recommended_specialists", ["Primary Care Physician"]))
             return result
         except Exception as e:
             logger.exception(f"Cross-risk analysis engine error: {e}")
