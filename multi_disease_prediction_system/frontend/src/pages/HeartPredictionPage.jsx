@@ -30,10 +30,12 @@ export default function HeartPredictionPage() {
   const [result, setResult] = useState(null);
   const [activeTab, setActiveTab] = useState('predict'); // 'predict' or 'whatif'
 
+  const safeInputs = inputs || initialInputs;
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setInputs(prev => ({
-      ...prev,
+      ...(prev || initialInputs),
       [name]: parseFloat(value) || 0
     }));
   };
@@ -150,7 +152,7 @@ export default function HeartPredictionPage() {
                   name="age"
                   min="20"
                   max="100"
-                  value={inputs.age}
+                  value={inputs?.age}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-red-500"
                 />
@@ -162,7 +164,7 @@ export default function HeartPredictionPage() {
                 </label>
                 <select
                   name="sex"
-                  value={inputs.sex}
+                  value={inputs?.sex}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-red-500"
                 >
@@ -177,7 +179,7 @@ export default function HeartPredictionPage() {
                 </label>
                 <select
                   name="cp"
-                  value={inputs.cp}
+                  value={inputs?.cp ?? 3}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-red-500"
                 >
@@ -197,7 +199,7 @@ export default function HeartPredictionPage() {
                   name="trestbps"
                   min="80"
                   max="220"
-                  value={inputs.trestbps}
+                  value={inputs?.trestbps}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-red-500"
                 />
@@ -212,7 +214,7 @@ export default function HeartPredictionPage() {
                   name="chol"
                   min="100"
                   max="600"
-                  value={inputs.chol}
+                  value={inputs?.chol}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-red-500"
                 />
@@ -224,7 +226,7 @@ export default function HeartPredictionPage() {
                 </label>
                 <select
                   name="fbs"
-                  value={inputs.fbs}
+                  value={inputs?.fbs}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-red-500"
                 >
@@ -239,7 +241,7 @@ export default function HeartPredictionPage() {
                 </label>
                 <select
                   name="restecg"
-                  value={inputs.restecg}
+                  value={inputs?.restecg}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-red-500"
                 >
@@ -258,7 +260,7 @@ export default function HeartPredictionPage() {
                   name="thalach"
                   min="60"
                   max="220"
-                  value={inputs.thalach}
+                  value={inputs?.thalach}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-red-500"
                 />
@@ -270,7 +272,7 @@ export default function HeartPredictionPage() {
                 </label>
                 <select
                   name="exang"
-                  value={inputs.exang}
+                  value={inputs?.exang}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-red-500"
                 >
@@ -289,7 +291,7 @@ export default function HeartPredictionPage() {
                   name="oldpeak"
                   min="0"
                   max="6.5"
-                  value={inputs.oldpeak}
+                  value={inputs?.oldpeak}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-red-500"
                 />
@@ -301,7 +303,7 @@ export default function HeartPredictionPage() {
                 </label>
                 <select
                   name="slope"
-                  value={inputs.slope}
+                  value={inputs?.slope}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-red-500"
                 >
@@ -317,7 +319,7 @@ export default function HeartPredictionPage() {
                 </label>
                 <select
                   name="ca"
-                  value={inputs.ca}
+                  value={inputs?.ca}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-red-500"
                 >
@@ -334,7 +336,7 @@ export default function HeartPredictionPage() {
                 </label>
                 <select
                   name="thal"
-                  value={inputs.thal}
+                  value={inputs?.thal}
                   onChange={handleChange}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-red-500"
                 >
