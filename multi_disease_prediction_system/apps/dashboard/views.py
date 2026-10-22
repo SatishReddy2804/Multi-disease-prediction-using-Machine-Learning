@@ -57,8 +57,9 @@ class ModelEvaluationView(APIView):
 
 class HealthCheckView(APIView):
     """
-    Health check endpoint verifying Django DB connection and ML model readiness.
-    Returns HTTP 200 if all services and models are ready, HTTP 503 otherwise.
+    Lightweight health check endpoint for container orchestrators (Render).
+    Returns HTTP 200 as long as Django is running.
+    Reports database and ML model readiness in payload without causing false deployment restarts.
     """
     permission_classes = [AllowAny]
 
@@ -97,15 +98,12 @@ class HealthCheckView(APIView):
             all_models_ok = False
             models_status = {"error": str(e)}
 
-        healthy = db_ok and all_models_ok
         payload = {
-            "status": "healthy" if healthy else "degraded",
+            "status": "healthy" if (db_ok and all_models_ok) else "degraded",
             "service": "multi-disease-prediction-system",
             "database": db_message,
             "models": models_status,
             "timestamp": datetime.utcnow().isoformat(),
         }
-        return Response(
-            payload,
-            status=status.HTTP_200_OK if healthy else status.HTTP_503_SERVICE_UNAVAILABLE,
-        )
+        # Always return HTTP 200 so Render health check probe succeeds while service boots
+        return Response(payload, status=status.HTTP_200_OK)
