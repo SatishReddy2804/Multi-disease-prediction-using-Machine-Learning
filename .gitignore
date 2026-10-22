@@ -47,9 +47,6 @@ frontend/.env.local
 Thumbs.db
 desktop.ini
 
-# Docker
-.dockerignore
-
 # Coverage
 htmlcov/
 .coverage

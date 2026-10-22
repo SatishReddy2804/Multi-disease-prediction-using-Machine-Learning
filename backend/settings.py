@@ -205,10 +205,16 @@ if frontend_env:
         if u and u not in CSRF_TRUSTED_ORIGINS:
             CSRF_TRUSTED_ORIGINS.append(u)
 
-# ML Configuration
-MODEL_DIRECTORY = os.environ.get("MODEL_DIRECTORY", str(BASE_DIR / "ml" / "models"))
-DATA_DIRECTORY = os.environ.get("DATA_DIRECTORY", str(BASE_DIR / "data"))
-REPORT_DIRECTORY = os.environ.get("REPORT_DIRECTORY", str(BASE_DIR / "media" / "reports"))
+# Base directory paths for ML models, datasets, and reports
+_configured_model_dir = os.environ.get("MODEL_DIRECTORY")
+MODEL_DIRECTORY = str(Path(_configured_model_dir).resolve()) if _configured_model_dir else str(BASE_DIR / "ml" / "models")
+
+_configured_data_dir = os.environ.get("DATA_DIRECTORY")
+DATA_DIRECTORY = str(Path(_configured_data_dir).resolve()) if _configured_data_dir else str(BASE_DIR / "data")
+
+_configured_report_dir = os.environ.get("REPORT_DIRECTORY")
+REPORT_DIRECTORY = str(Path(_configured_report_dir).resolve()) if _configured_report_dir else str(BASE_DIR / "media" / "reports")
+
 ML_CONFIG_PATH = BASE_DIR / "ml" / "config" / "model_config.yaml"
 
 # Frontend URL for CORS and redirects
