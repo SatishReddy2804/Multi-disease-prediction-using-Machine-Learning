@@ -1,109 +1,285 @@
-import React, { useState } from 'react';
-import { Sliders, RefreshCw, AlertTriangle, ArrowRight, TrendingDown } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import {
+  Sliders,
+  RefreshCw,
+  AlertTriangle,
+  ArrowRight,
+  ExternalLink,
+  UserCheck,
+  Heart,
+  Droplet,
+  Shield,
+  Zap,
+  Clock,
+  FileQuestion,
+} from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import WhatIfPanel from '../components/WhatIfPanel';
 
-const diseaseDefaults = {
-  heart: {
-    age: 58,
-    sex: 1,
-    cp: 4,
-    trestbps: 160,
-    chol: 280,
-    fbs: 1,
-    restecg: 2,
-    thalach: 125,
-    exang: 1,
-    oldpeak: 2.8,
-    slope: 2,
-    ca: 2,
-    thal: 7
+const DISEASE_CONFIGS = [
+  {
+    key: 'heart',
+    label: 'Cardiovascular (Heart)',
+    shortLabel: 'Heart',
+    path: '/predict/heart',
+    icon: Heart,
+    color: 'red',
   },
-  diabetes: {
-    Pregnancies: 4,
-    Glucose: 165,
-    BloodPressure: 85,
-    SkinThickness: 33,
-    Insulin: 180,
-    BMI: 34.2,
-    DiabetesPedigreeFunction: 0.65,
-    Age: 46
+  {
+    key: 'diabetes',
+    label: 'Type 2 Diabetes',
+    shortLabel: 'Diabetes',
+    path: '/predict/diabetes',
+    icon: Droplet,
+    color: 'blue',
   },
-  liver: {
-    Age: 52,
-    Gender: "Male",
-    Total_Bilirubin: 2.4,
-    Direct_Bilirubin: 1.1,
-    Alkaline_Phosphotase: 340,
-    Alamine_Aminotransferase: 78,
-    Aspartate_Aminotransferase: 95,
-    Total_Protiens: 6.4,
-    Albumin: 2.8,
-    Albumin_and_Globulin_Ratio: 0.75
+  {
+    key: 'liver',
+    label: 'Hepatic (Liver)',
+    shortLabel: 'Liver',
+    path: '/predict/liver',
+    icon: Shield,
+    color: 'amber',
   },
-  parkinsons: {
-    "MDVP:Fo(Hz)": 120.2,
-    "MDVP:Fhi(Hz)": 145.1,
-    "MDVP:Flo(Hz)": 98.3,
-    "MDVP:Jitter(%)": 0.012,
-    "MDVP:Jitter(Abs)": 0.00009,
-    "MDVP:RAP": 0.0055,
-    "MDVP:PPQ": 0.0068,
-    "Jitter:DDP": 0.0165,
-    "MDVP:Shimmer": 0.058,
-    "MDVP:Shimmer(dB)": 0.52,
-    "Shimmer:APQ3": 0.029,
-    "Shimmer:APQ5": 0.038,
-    "MDVP:APQ": 0.045,
-    "Shimmer:DDA": 0.088,
-    "NHR": 0.035,
-    "HNR": 18.2,
-    "RPDE": 0.58,
-    "DFA": 0.78,
-    "spread1": -4.2,
-    "spread2": 0.31,
-    "D2": 2.65,
-    "PPE": 0.32
-  }
-};
+  {
+    key: 'parkinsons',
+    label: "Parkinson's Disease",
+    shortLabel: "Parkinson's",
+    path: '/predict/parkinsons',
+    icon: Zap,
+    color: 'purple',
+  },
+];
 
 export default function WhatIfPage() {
-  const [selectedDisease, setSelectedDisease] = useState('heart');
+  const location = useLocation();
+
+  // Selected disease tab ('heart', 'diabetes', 'liver', 'parkinsons')
+  const [selectedDisease, setSelectedDisease] = useState(() => {
+    // Check if disease was passed in location state (e.g. from prediction page)
+    if (location.state?.disease) {
+      return location.state.disease.toLowerCase().trim();
+    }
+    return 'heart';
+  });
+
+  // Latest genuine predictions loaded from clinical prediction history
+  const [patientRecords, setPatientRecords] = useState({});
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Load genuine patient prediction history from localStorage
+  const loadClinicalHistory = useCallback(() => {
+    try {
+      const historyStr = localStorage.getItem('clinical_prediction_history');
+      if (historyStr) {
+        const historyList = JSON.parse(historyStr);
+        if (Array.isArray(historyList)) {
+          const map = {};
+          // Find the most recent record for each disease
+          historyList.forEach((item) => {
+            const rawKey = (item.disease || item.disease_type || '').toLowerCase().trim();
+            let key = rawKey;
+            if (rawKey.includes('heart')) key = 'heart';
+            else if (rawKey.includes('diabet')) key = 'diabetes';
+            else if (rawKey.includes('liver')) key = 'liver';
+            else if (rawKey.includes('parkinson')) key = 'parkinsons';
+
+            if (DISEASE_CONFIGS.some((d) => d.key === key) && !map[key] && item.inputs) {
+              const prob = typeof item.probability === 'number' ? item.probability : parseFloat(item.probability) || 0;
+              map[key] = {
+                disease: key,
+                probability: prob,
+                risk_level: item.risk_level || (prob >= 0.6 ? 'High' : prob >= 0.3 ? 'Moderate' : 'Low'),
+                prediction: item.prediction !== undefined ? item.prediction : (prob >= 0.5 ? 1 : 0),
+                inputs: item.inputs,
+                patient: item.patient || {},
+                model_used: item.model_used || item.modelName || 'Validated Clinical ML',
+                timestamp: item.timestamp || null,
+              };
+            }
+          });
+          setPatientRecords(map);
+
+          // If location state provided a disease with inputs, use that directly
+          if (location.state?.inputs && location.state?.disease) {
+            const locKey = location.state.disease.toLowerCase().trim();
+            map[locKey] = {
+              disease: locKey,
+              probability: location.state.probability ?? 0.5,
+              risk_level: location.state.risk_level || 'Evaluated',
+              inputs: location.state.inputs,
+              patient: location.state.patient || {},
+              model_used: location.state.model_used || 'Current In-Memory Session',
+              timestamp: new Date().toISOString(),
+            };
+            setPatientRecords({ ...map });
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Could not read clinical prediction history:', err);
+    } finally {
+      setIsLoaded(true);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    loadClinicalHistory();
+  }, [loadClinicalHistory]);
+
+  const activeRecord = patientRecords[selectedDisease];
+  const activeConfig = DISEASE_CONFIGS.find((d) => d.key === selectedDisease) || DISEASE_CONFIGS[0];
+
+  // List of diseases that currently have a valid baseline prediction
+  const availableDiseases = useMemo(() => {
+    return DISEASE_CONFIGS.filter((d) => Boolean(patientRecords[d.key]));
+  }, [patientRecords]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <div className="bg-gradient-to-r from-indigo-700 to-purple-800 text-white rounded-2xl p-6 shadow-md flex items-center justify-between">
+      {/* Top Banner & Disease Navigation */}
+      <div className="bg-gradient-to-r from-indigo-800 via-indigo-900 to-purple-950 text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center space-x-3">
-            <Sliders className="w-8 h-8 text-indigo-200" />
+            <Sliders className="w-8 h-8 text-indigo-300" />
             <h1 className="text-2xl font-bold tracking-tight">Counterfactual What-If Risk Simulator</h1>
           </div>
           <p className="text-indigo-100 text-sm max-w-2xl">
-            Simulate how clinical lifestyle interventions, medication adherence, or parameter improvements directly alter patient risk scores.
+            Simulate how targeted clinical lifestyle interventions, medication adjustments, or biomarker improvements alter estimated patient risk.
           </p>
         </div>
-        
-        <div className="flex gap-2">
-          {['heart', 'diabetes', 'liver', 'parkinsons'].map((d) => (
-            <button
-              key={d}
-              onClick={() => setSelectedDisease(d)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition ${
-                selectedDisease === d
-                  ? 'bg-white text-indigo-800 shadow'
-                  : 'bg-indigo-900/60 text-indigo-100 hover:bg-indigo-900'
-              }`}
-            >
-              {d}
-            </button>
-          ))}
+
+        {/* Disease Selection Tabs */}
+        <div className="flex flex-wrap gap-1.5 bg-indigo-950/70 p-1.5 rounded-xl border border-indigo-700/50">
+          {DISEASE_CONFIGS.map((d) => {
+            const hasBaseline = Boolean(patientRecords[d.key]);
+            const isSelected = selectedDisease === d.key;
+
+            return (
+              <button
+                key={d.key}
+                onClick={() => setSelectedDisease(d.key)}
+                className={`relative px-3.5 py-2 rounded-lg text-xs font-semibold capitalize transition flex items-center gap-1.5 ${
+                  isSelected
+                    ? 'bg-white text-indigo-900 shadow-sm'
+                    : 'text-indigo-200 hover:text-white hover:bg-indigo-900/60'
+                }`}
+              >
+                <span>{d.shortLabel}</span>
+                {hasBaseline && (
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      isSelected ? 'bg-emerald-600' : 'bg-emerald-400'
+                    }`}
+                    title="Patient baseline available"
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <WhatIfPanel
-        disease={selectedDisease}
-        baselineInputs={diseaseDefaults[selectedDisease]}
-        currentProbability={0.76}
-      />
+      {/* Main Content Area */}
+      {activeRecord ? (
+        /* ── CASE 1: VALID PATIENT BASELINE AVAILABLE ────────────────────────── */
+        <div className="space-y-4">
+          {/* Patient Context Ribbon */}
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 bg-indigo-50/70 dark:bg-indigo-950/30 rounded-xl border border-indigo-200/60 dark:border-indigo-800/40 text-xs">
+            <div className="flex items-center gap-2">
+              <UserCheck className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                Patient Baseline: {activeRecord.patient?.fullName || activeRecord.patient?.patientId || 'Clinical Patient Record'}
+              </span>
+              <span className="text-slate-400">•</span>
+              <span className="text-slate-600 dark:text-slate-400">
+                Initial Risk: <strong className="text-indigo-700 dark:text-indigo-300">{(activeRecord.probability * 100).toFixed(1)}% ({activeRecord.risk_level})</strong>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+              {activeRecord.timestamp && (
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  {new Date(activeRecord.timestamp).toLocaleDateString()}
+                </span>
+              )}
+              <button
+                onClick={loadClinicalHistory}
+                className="hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                title="Reload latest patient record"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Genuine Counterfactual What-If Panel */}
+          <WhatIfPanel
+            disease={selectedDisease}
+            originalInputs={activeRecord.inputs}
+            baselineInputs={activeRecord.inputs}
+            baselineProbability={activeRecord.probability}
+            currentProbability={activeRecord.probability}
+            patientInfo={activeRecord.patient}
+          />
+        </div>
+      ) : (
+        /* ── CASE 2: MISSING PATIENT BASELINE (ACTIONABLE EMPTY STATE) ──────── */
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 p-10 text-center space-y-5">
+          <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 mx-auto flex items-center justify-center">
+            <FileQuestion className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-1.5 max-w-md mx-auto">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              Baseline {activeConfig.label} Prediction Required
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              The What-If Simulator runs counterfactual inference on genuine patient parameters.
+              No baseline prediction for <strong>{activeConfig.label}</strong> is currently recorded in your session.
+            </p>
+          </div>
+
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              to={activeConfig.path}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-sm"
+            >
+              <span>Execute {activeConfig.shortLabel} Risk Prediction</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+
+            {availableDiseases.length > 0 && (
+              <span className="text-xs text-slate-400">or switch to an evaluated disease below</span>
+            )}
+          </div>
+
+          {/* Show other available diseases with completed baselines */}
+          {availableDiseases.length > 0 && (
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 max-w-lg mx-auto">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                Available Evaluated Modules in Current Session
+              </span>
+              <div className="flex flex-wrap justify-center gap-2">
+                {availableDiseases.map((d) => (
+                  <button
+                    key={d.key}
+                    onClick={() => setSelectedDisease(d.key)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition border border-slate-200 dark:border-slate-700"
+                  >
+                    <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>{d.label}</span>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      ({(patientRecords[d.key].probability * 100).toFixed(0)}%)
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

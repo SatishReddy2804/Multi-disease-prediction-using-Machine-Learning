@@ -1,60 +1,55 @@
 import api from './api';
-import { predictionService } from './predictionService';
 
+/**
+ * Counterfactual What-If Simulation API Service
+ *
+ * Interacts with the backend ML inference engine at POST /api/what-if/simulate/
+ * to evaluate genuine counterfactual risk adjustments without fabricated fallbacks.
+ */
 export const whatIfService = {
+  /**
+   * Execute counterfactual simulation.
+   *
+   * @param {string} disease - Disease identifier ('heart', 'diabetes', 'parkinsons', 'liver')
+   * @param {Object} originalInputs - Complete baseline patient clinical parameters
+   * @param {Object} modifiedInputs - Modified actionable parameters to evaluate
+   * @returns {Promise<Object>} Genuine ML simulation comparison result
+   * @throws {Error} Propagated backend or network error
+   */
   async simulate(disease, originalInputs, modifiedInputs) {
-    try {
-      const response = await api.post('/api/what-if/simulate/', {
-        disease,
-        original: originalInputs,
-        modified: modifiedInputs,
-      });
-      return response.data;
-    } catch {
-      // Offline fallback: run baseline and modified through predictor
-      const baseline = await predictionService.predict(disease, originalInputs);
-      const modified = await predictionService.predict(disease, modifiedInputs);
+    const payload = {
+      disease_type: disease.toLowerCase().trim(),
+      disease: disease.toLowerCase().trim(),
+      original_input: originalInputs,
+      original: originalInputs,
+      modified_values: modifiedInputs,
+      modified: modifiedInputs,
+    };
 
-      const delta = Number((modified.probability - baseline.probability).toFixed(3));
-      const deltaPercent = Number((delta * 100).toFixed(1));
+    // Post to genuine backend ML simulation endpoint
+    const response = await api.post('/api/what-if/simulate/', payload);
+    const data = response.data;
 
-      // Calculate feature level impact ranking
-      const impactRanking = Object.keys(modifiedInputs)
-        .map((key) => {
-          const origVal = Number(originalInputs[key]);
-          const modVal = Number(modifiedInputs[key]);
-          if (isNaN(origVal) || isNaN(modVal) || origVal === modVal) return null;
+    // Normalize response from { success: true, data: {...} } or direct object
+    const result = data?.data || data;
 
-          const diffRatio = origVal !== 0 ? (modVal - origVal) / origVal : modVal - origVal;
-          const estimatedImpact = Number((diffRatio * 15).toFixed(1));
-
-          return {
-            feature: key,
-            originalValue: origVal,
-            modifiedValue: modVal,
-            changePercent: Number((diffRatio * 100).toFixed(1)),
-            impactScore: Math.min(25, Math.max(-25, estimatedImpact)),
-          };
-        })
-        .filter(Boolean)
-        .sort((a, b) => Math.abs(b.impactScore) - Math.abs(a.impactScore));
-
-      return {
-        disease,
-        baselineProbability: baseline.probability,
-        modifiedProbability: modified.probability,
-        delta,
-        deltaPercent,
-        riskReduced: delta < 0,
-        impactRanking,
-        summary:
-          delta < 0
-            ? `Target modifications achieve a ${Math.abs(deltaPercent)}% reduction in overall predicted risk.`
-            : delta > 0
-            ? `Modifications reflect an increase of ${deltaPercent}% in risk exposure.`
-            : 'No significant risk variance detected with specified parameters.',
-      };
+    if (!result || result.success === false) {
+      throw new Error(result?.error || 'Counterfactual simulation failed.');
     }
+
+    // Return normalized comparison structure
+    return {
+      ...result,
+      disease: result.disease_type || disease,
+      baselineProbability: result.baseline_probability ?? result.original_risk?.probability ?? 0,
+      modifiedProbability: result.counterfactual_probability ?? result.modified_risk?.probability ?? 0,
+      delta: result.delta ?? result.what_if_result?.absolute_change ?? 0,
+      deltaPercent: result.deltaPercent ?? result.what_if_result?.percentage_points_change ?? 0,
+      riskReduced: (result.delta ?? result.what_if_result?.absolute_change ?? 0) < 0,
+      impactRanking: result.impactRanking ?? result.ranked_interventions ?? [],
+      summary: result.summary ?? result.what_if_result?.message ?? '',
+      disclaimer: result.disclaimer ?? result.medical_disclaimer ?? '',
+    };
   },
 };
 

@@ -1,7 +1,7 @@
 """
 Counterfactual What-If Risk Simulation Service.
 Integrates with ml.src.what_if_simulator to execute scenario testing,
-impact ranking, and before-vs-after risk variance.
+impact ranking, and before-vs-after risk variance using trained models.
 """
 
 import logging
@@ -10,29 +10,33 @@ from typing import Dict, Any
 logger = logging.getLogger(__name__)
 
 WHAT_IF_DISCLAIMER = (
-    "This simulation is educational only. It does not guarantee that changing a clinical value "
-    "will produce an equivalent biological outcome. Treatment plans and lifestyle modifications "
-    "must be conducted under direct medical supervision."
+    "What-If results are simulated educational estimates. They do not guarantee that changing a clinical value "
+    "will change an actual medical outcome. Always consult a qualified doctor for diagnosis, treatment, or medication decisions."
 )
 
 
 class WhatIfService:
-    """Service orchestrating counterfactual scenario risk analysis."""
+    """Service orchestrating counterfactual scenario risk analysis without fabricated defaults."""
 
     @staticmethod
     def simulate(disease_type: str, original_input: Dict[str, Any], modified_values: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Executes counterfactual scenario simulation.
+        Executes counterfactual scenario simulation using the existing trained disease model.
+        Never returns fabricated probability fallbacks if inference fails.
         """
         try:
             from ml.src.what_if_simulator import run_what_if_simulation
             result = run_what_if_simulation(disease_type, original_input, modified_values)
             result["disclaimer"] = WHAT_IF_DISCLAIMER
+            result["medical_disclaimer"] = WHAT_IF_DISCLAIMER
+            if "what_if_result" in result:
+                result["what_if_result"]["disclaimer"] = WHAT_IF_DISCLAIMER
 
-            base_prob = result.get("baseline", {}).get("probability", 0.0)
-            new_prob = result.get("counterfactual", {}).get("probability", 0.0)
-            delta = result.get("overall_impact", {}).get("probability_delta", round(new_prob - base_prob, 4))
-            delta_pct = result.get("overall_impact", {}).get("percentage_points_change", round(delta * 100, 1))
+            # Ensure consistent legacy aliases expected by various frontend components
+            base_prob = result["original_risk"]["probability"]
+            new_prob = result["modified_risk"]["probability"]
+            delta = result["what_if_result"]["absolute_change"]
+            delta_pct = result["what_if_result"]["percentage_points_change"]
 
             result["baseline_probability"] = base_prob
             result["counterfactual_probability"] = new_prob
@@ -41,27 +45,23 @@ class WhatIfService:
             result["delta"] = delta
             result["deltaPercent"] = delta_pct
             result["riskReduced"] = delta < 0
-            result["impactRanking"] = result.get("ranked_interventions", [])
-            result["summary"] = result.get("overall_impact", {}).get("recommendation", "")
+            result["impactRanking"] = [
+                {
+                    "feature": item["display_name"],
+                    "raw_feature": item["feature"],
+                    "originalValue": item["original_value"],
+                    "modifiedValue": item["simulated_value"],
+                    "impactScore": item["marginal_pct_change"],
+                    "marginalRiskDelta": item["marginal_risk_delta"],
+                    "unit": item["unit"],
+                    "isBeneficial": item["is_beneficial"],
+                    "healthyTarget": item["healthy_target"]
+                }
+                for item in result.get("ranked_interventions", [])
+            ]
+            result["summary"] = result["what_if_result"]["message"]
             return result
         except Exception as e:
-            logger.exception(f"What-if simulation error: {e}")
-            # Fallback estimation
-            return {
-                "disease": disease_type,
-                "baseline_probability": 0.65,
-                "counterfactual_probability": 0.42,
-                "absolute_risk_reduction": 0.23,
-                "percentage_change": -35.4,
-                "impact_rankings": [
-                    {
-                        "feature": list(modified_values.keys())[0] if modified_values else "Primary Metric",
-                        "baseline_value": list(modified_values.values())[0] if modified_values else 0,
-                        "counterfactual_value": list(modified_values.values())[0] if modified_values else 0,
-                        "individual_risk_reduction": 0.23,
-                        "relative_impact_pct": 100.0
-                    }
-                ],
-                "disclaimer": WHAT_IF_DISCLAIMER,
-                "warning": "Simulation executed via heuristic estimation due to dynamic pipeline constraints."
-            }
+            logger.exception("Error executing genuine what-if simulation for %s: %s", disease_type, e)
+            # Re-raise so the view returns a genuine HTTP error rather than returning fake numbers
+            raise

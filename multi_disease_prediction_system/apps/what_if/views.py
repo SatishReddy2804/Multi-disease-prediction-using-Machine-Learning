@@ -43,12 +43,22 @@ class WhatIfSimulateView(APIView):
             )
             return Response({"success": True, "data": result, **result}, status=status.HTTP_200_OK)
 
-        except Exception as e:
-            logger.exception("Error during what-if risk simulation")
+        except ValueError as ve:
+            logger.warning("What-if parameter validation error: %s", ve)
             return Response(
                 {
                     "success": False,
-                    "error": "Failed to complete counterfactual simulation. Please check your inputs.",
+                    "error": str(ve),
+                    "status": "validation_error"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            logger.exception("Error during counterfactual risk simulation")
+            return Response(
+                {
+                    "success": False,
+                    "error": f"Failed to complete counterfactual simulation: {str(e)}",
                     "status": "simulation_error"
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
