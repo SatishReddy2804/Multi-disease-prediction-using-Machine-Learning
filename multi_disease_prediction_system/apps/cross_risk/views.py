@@ -44,7 +44,8 @@ class CrossRiskAnalyzeView(APIView):
             return Response(
                 {
                     "success": False,
-                    "error": "Failed to analyze cross-organ risk profile.",
+                    "error": f"Failed to analyze cross-organ risk profile: {str(e)}",
+                    "details": str(e),
                     "status": "analysis_error"
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
